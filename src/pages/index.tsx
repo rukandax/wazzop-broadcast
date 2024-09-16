@@ -59,7 +59,7 @@ export default function Home() {
   const { toast } = useToast();
 
   const axiosInstance = axios.create({
-    baseURL: "http://103.127.133.3/whatsapp-api",
+    baseURL: "/api",
     timeout: 6000,
   });
 
