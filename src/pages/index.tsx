@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import axios from "axios";
@@ -345,11 +343,6 @@ export default function Home() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // await simulateApiCall(() => {
-    //   console.log("Registration data:", registrationFormData);
-    //   setShowRegisterModal(false);
-    //   setShowRegisterSuccessModal(true);
-    // });
   };
 
   return (
