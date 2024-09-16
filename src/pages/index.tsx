@@ -31,7 +31,6 @@ import {
   LogIn,
   Smartphone,
   Loader2,
-  UserPlus,
   AlertTriangle,
   ExternalLink,
 } from "lucide-react";
