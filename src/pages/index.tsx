@@ -114,7 +114,7 @@ export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showDeviceModal, setShowDeviceModal] = useState(false);
+  const [showAddDeviceModal, setShowAddDeviceModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showRegisterSuccessModal, setShowRegisterSuccessModal] =
     useState(false);
@@ -173,6 +173,12 @@ export default function Home() {
     }, 58_000);
   }, [showConnectQRCodeModal]);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      getDevicesData();
+    }
+  }, [showAddDeviceModal]);
+
   const handleBroadcastFormDataChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
@@ -195,6 +201,14 @@ export default function Home() {
     }
   }, [broadcastFormData.messageTemplate, broadcastFormData.destinationNumbers]);
 
+  const delay = async (delay: number) => {
+    return await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(true);
+      }, delay);
+    });
+  };
+
   const handleSubmitBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -207,27 +221,47 @@ export default function Home() {
       return;
     }
 
-    try {
-      setIsLoading(true);
+    setIsLoading(true);
 
-      broadcastFormData.destinationNumbers
-        .split("\n")
-        .forEach(async (phoneNumber: string) => {
+    if (!broadcastFormData.messageTemplate?.length) {
+      toast({
+        title: "Error",
+        description: "Teks pesan tidak valid",
+        variant: "destructive",
+      });
+    }
+
+    const phoneNumbers = broadcastFormData.destinationNumbers.split("\n");
+
+    if (!!phoneNumbers?.length) {
+      for (const phoneNumber of phoneNumbers) {
+        try {
           await axiosInstance.post("/send", {
             deviceId: broadcastFormData.deviceId,
             destination: phoneNumber,
             type: "person",
             text: broadcastFormData.messageTemplate,
           });
-        });
-    } catch {
-      // do nothing
-    } finally {
-      setIsLoading(false);
+
+          const randomDelay =
+            Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000;
+          await delay(randomDelay);
+        } catch {
+          // do nothing
+        }
+      }
 
       toast({
         title: "Success",
         description: "Pesan sedang dalam proses pengiriman",
+      });
+
+      setIsLoading(false);
+    } else {
+      toast({
+        title: "Error",
+        description: "Nomor tujuan tidak valid",
+        variant: "destructive",
       });
     }
   };
@@ -320,7 +354,7 @@ export default function Home() {
           }
         } else {
           await getDevicesData();
-          setShowDeviceModal(false);
+          setShowAddDeviceModal(false);
 
           toast({
             title: "Success",
@@ -361,7 +395,7 @@ export default function Home() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowDeviceModal(true)}
+                  onClick={() => setShowAddDeviceModal(true)}
                   className="flex items-center space-x-2"
                   disabled={isLoading}
                 >
@@ -548,7 +582,7 @@ export default function Home() {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={showDeviceModal} onOpenChange={setShowDeviceModal}>
+        <Dialog open={showAddDeviceModal} onOpenChange={setShowAddDeviceModal}>
           <DialogContent className="bg-white">
             <DialogHeader>
               <DialogTitle>Connect Device to Wazzop</DialogTitle>
