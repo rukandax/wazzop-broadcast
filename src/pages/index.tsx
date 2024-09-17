@@ -32,6 +32,7 @@ import {
   Loader2,
   AlertTriangle,
   ExternalLink,
+  UserPlus,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -498,16 +499,20 @@ export default function Home() {
                   <LogIn className="h-4 w-4" />
                   <span>Log In</span>
                 </Button>
-                {/* <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowRegisterModal(true)}
-                className="flex items-center space-x-2"
-                disabled={isLoading}
-              >
-                <UserPlus className="h-4 w-4" />
-                <span>Register</span>
-              </Button> */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  // onClick={() => setShowRegisterModal(true)}
+                  onClick={() => {
+                    window.location.href =
+                      "https://forms.gle/HWZuM18RaqmRWqrAA";
+                  }}
+                  className="flex items-center space-x-2"
+                  disabled={isLoading}
+                >
+                  <UserPlus className="h-4 w-4" />
+                  <span>Register</span>
+                </Button>
               </>
             )}
           </div>
