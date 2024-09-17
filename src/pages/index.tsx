@@ -42,6 +42,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { cn } from "@/lib/utils";
+import formatPhoneNumber from "@/lib/formatPhoneNumber";
 
 type Device = {
   id: string;
@@ -269,7 +270,7 @@ export default function Home() {
         try {
           await axiosInstance.post("/send", {
             deviceId: broadcastFormData.deviceId,
-            destination: phoneNumber,
+            destination: formatPhoneNumber(phoneNumber),
             type: "person",
             text: `${broadcastFormData.messageTemplate}\n\n> Pesan broadcast dikirim melalui wazzop-broadcast.vercel.app`,
           });
@@ -414,7 +415,7 @@ export default function Home() {
                 ? addDeviceData.id
                 : newDeviceFormData.deviceId,
             method: newDeviceFormData.method,
-            phoneNumber: newDeviceFormData.whatsappNumber,
+            phoneNumber: formatPhoneNumber(newDeviceFormData.whatsappNumber),
           }
         );
 
