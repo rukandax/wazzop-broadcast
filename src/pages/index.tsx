@@ -1057,6 +1057,15 @@ export default function Home() {
               API Documentation
               <ExternalLink className="ml-1 h-4 w-4" />
             </a>
+            <a
+              href="https://github.com/rukandax/wazzop-broadcast"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center hover:text-gray-700 transition-colors"
+            >
+              Github Repository
+              <ExternalLink className="ml-1 h-4 w-4" />
+            </a>
           </div>
         </footer>
       </div>
