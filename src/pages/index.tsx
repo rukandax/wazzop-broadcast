@@ -184,7 +184,7 @@ export default function Home() {
   const [connectDeviceQR, setConnectDeviceQR] = useState("");
 
   const [showConnectCodeModal, setShowConnectCodeModal] = useState(false);
-  const [showConnectQRCodeModal, setShowConnectQRCodeModal] = useState(false);
+  const [showConnectQRModal, setShowConnectQRModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const messageTemplateRef = useRef<HTMLTextAreaElement>(null);
@@ -217,9 +217,17 @@ export default function Home() {
     getDevicesData();
 
     setTimeout(() => {
-      setShowConnectQRCodeModal(false);
+      setShowConnectQRModal(false);
     }, 58_000);
-  }, [showConnectQRCodeModal]);
+  }, [showConnectQRModal]);
+
+  useEffect(() => {
+    getDevicesData();
+
+    setTimeout(() => {
+      setShowConnectCodeModal(false);
+    }, 58_000);
+  }, [showConnectCodeModal]);
 
   useEffect(() => {
     getDevicesData();
@@ -439,7 +447,7 @@ export default function Home() {
             setShowConnectCodeModal(true);
           } else if (newDeviceFormData.method === "qr") {
             setConnectDeviceQR(connectDeviceData.qrString);
-            setShowConnectQRCodeModal(true);
+            setShowConnectQRModal(true);
           }
         } else {
           setShowAddDeviceModal(false);
@@ -890,8 +898,8 @@ export default function Home() {
         </Dialog>
 
         <Dialog
-          open={showConnectQRCodeModal}
-          onOpenChange={setShowConnectQRCodeModal}
+          open={showConnectQRModal}
+          onOpenChange={setShowConnectQRModal}
         >
           <DialogContent>
             <DialogHeader>
@@ -905,7 +913,7 @@ export default function Home() {
             </div>
             <DialogFooter>
               <Button
-                onClick={() => setShowConnectQRCodeModal(false)}
+                onClick={() => setShowConnectQRModal(false)}
                 disabled={isLoading}
               >
                 Close
