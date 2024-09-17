@@ -197,6 +197,20 @@ export default function Home() {
     ) {
       getDevicesData(true);
     }
+
+    if (!!Cookies.get("message-template")) {
+      setBroadcastFormData((prevData) => ({
+        ...prevData,
+        messageTemplate: Cookies.get("message-template") || "",
+      }));
+    }
+
+    if (!!Cookies.get("destination-number")) {
+      setBroadcastFormData((prevData) => ({
+        ...prevData,
+        destinationNumbers: Cookies.get("destination-number") || "",
+      }));
+    }
   }, []);
 
   useEffect(() => {
@@ -569,7 +583,10 @@ export default function Home() {
               name="messageTemplate"
               placeholder="Enter WhatsApp text, support WhatsApp formatting"
               value={broadcastFormData.messageTemplate}
-              onChange={handleBroadcastFormDataChange}
+              onChange={(e) => {
+                handleBroadcastFormDataChange(e);
+                Cookies.set("message-template", e.target.value);
+              }}
               required
               disabled={isLoading}
               className="min-h-[100px] resize-none overflow-hidden"
@@ -585,7 +602,10 @@ export default function Home() {
               name="destinationNumbers"
               placeholder="Enter WhatsApp numbers, one per line"
               value={broadcastFormData.destinationNumbers}
-              onChange={handleBroadcastFormDataChange}
+              onChange={(e) => {
+                handleBroadcastFormDataChange(e);
+                Cookies.set("destination-number", e.target.value);
+              }}
               required
               disabled={isLoading}
               className="min-h-[100px] resize-none overflow-hidden"
