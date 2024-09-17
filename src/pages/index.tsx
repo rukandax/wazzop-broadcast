@@ -532,11 +532,13 @@ export default function Home() {
               <SelectContent>
                 {devices.map((device) => (
                   <SelectItem key={device.id} value={device.id}>
-                    {device.data.deviceName} ({device.data.phoneNumber}) -{" "}
+                    {device.data.deviceName}{" "}
                     {device.data.deviceStatus === "connected" ||
-                    device.data.deviceStatus === "syncing"
-                      ? "Connected"
-                      : "Disconnected"}
+                    device.data.deviceStatus === "syncing" ? (
+                      <>({device.data.phoneNumber}) - Connected</>
+                    ) : (
+                      <>- Disconnected</>
+                    )}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -601,7 +603,7 @@ export default function Home() {
         </form>
 
         <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
-          <DialogContent className="bg-white">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Login to Wazzop</DialogTitle>
               <DialogDescription>
@@ -659,7 +661,7 @@ export default function Home() {
         </Dialog>
 
         <Dialog open={showAddDeviceModal} onOpenChange={setShowAddDeviceModal}>
-          <DialogContent className="bg-white">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Connect Device to Wazzop</DialogTitle>
               <DialogDescription>
@@ -688,11 +690,13 @@ export default function Home() {
                     </SelectItem>
                     {devices.map((device) => (
                       <SelectItem key={device.id} value={device.id}>
-                        {device.data.deviceName} ({device.data.phoneNumber}) -{" "}
+                        {device.data.deviceName}{" "}
                         {device.data.deviceStatus === "connected" ||
-                        device.data.deviceStatus === "syncing"
-                          ? "Connected"
-                          : "Disconnected"}
+                        device.data.deviceStatus === "syncing" ? (
+                          <>({device.data.phoneNumber}) - Connected</>
+                        ) : (
+                          <>- Disconnected</>
+                        )}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -808,7 +812,7 @@ export default function Home() {
           open={showConnectCodeModal}
           onOpenChange={setShowConnectCodeModal}
         >
-          <DialogContent className="bg-white">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Enter WhatsApp Code</DialogTitle>
               <DialogDescription>
@@ -819,15 +823,39 @@ export default function Home() {
               <Label htmlFor="codeInput">WhatsApp Code</Label>
               <InputOTP maxLength={8} value={connectDeviceCode} disabled>
                 <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
+                  <InputOTPSlot
+                    className="text-black font-semibold"
+                    index={0}
+                  />
+                  <InputOTPSlot
+                    className="text-black font-semibold"
+                    index={1}
+                  />
+                  <InputOTPSlot
+                    className="text-black font-semibold"
+                    index={2}
+                  />
+                  <InputOTPSlot
+                    className="text-black font-semibold"
+                    index={3}
+                  />
                   <InputOTPSeparator />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
-                  <InputOTPSlot index={6} />
-                  <InputOTPSlot index={7} />
+                  <InputOTPSlot
+                    className="text-black font-semibold"
+                    index={4}
+                  />
+                  <InputOTPSlot
+                    className="text-black font-semibold"
+                    index={5}
+                  />
+                  <InputOTPSlot
+                    className="text-black font-semibold"
+                    index={6}
+                  />
+                  <InputOTPSlot
+                    className="text-black font-semibold"
+                    index={7}
+                  />
                 </InputOTPGroup>
               </InputOTP>
             </div>
@@ -838,7 +866,7 @@ export default function Home() {
           open={showConnectQRCodeModal}
           onOpenChange={setShowConnectQRCodeModal}
         >
-          <DialogContent className="bg-white">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Scan QR Code</DialogTitle>
               <DialogDescription>
@@ -860,7 +888,7 @@ export default function Home() {
         </Dialog>
 
         <Dialog open={showRegisterModal} onOpenChange={setShowRegisterModal}>
-          <DialogContent className="bg-white">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Register for Wazzop</DialogTitle>
               <DialogDescription>
@@ -998,7 +1026,7 @@ export default function Home() {
           open={showRegisterSuccessModal}
           onOpenChange={setShowRegisterSuccessModal}
         >
-          <DialogContent className="bg-white">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Registration Successful</DialogTitle>
               <DialogDescription>
