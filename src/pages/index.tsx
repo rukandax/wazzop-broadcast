@@ -272,7 +272,7 @@ export default function Home() {
             deviceId: broadcastFormData.deviceId,
             destination: formatPhoneNumber(phoneNumber),
             type: "person",
-            text: `${broadcastFormData.messageTemplate}\n\n> Pesan broadcast dikirim melalui wazzop-broadcast.vercel.app`,
+            text: broadcastFormData.messageTemplate,
           });
 
           const randomDelay =
