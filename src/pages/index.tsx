@@ -40,6 +40,7 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { cn } from "@/lib/utils";
 
 type Device = {
   id: string;
@@ -121,27 +122,60 @@ export default function Home() {
 
   const [devices, setDevices] = useState<Device[]>([]);
 
-  const [newDeviceFormData, setNewDeviceFormData] = useState({
+  const DEFAULT_NEW_DEVICE_FORM_DATA = Object.freeze({
     deviceId: "add-new-device",
     name: "",
     method: "code",
     whatsappNumber: "",
   });
-  const [broadcastFormData, setBroadcastFormData] = useState({
+  const [newDeviceFormData, setNewDeviceFormData] = useState<{
+    deviceId: string;
+    name: string;
+    method: string;
+    whatsappNumber: string;
+  }>({
+    ...DEFAULT_NEW_DEVICE_FORM_DATA,
+  });
+
+  const DEFAULT_BROADCAST_FORM_DATA = Object.freeze({
     deviceId: "",
     messageTemplate: "",
     destinationNumbers: "",
   });
-  const [loginFormData, setLoginFormData] = useState({
+  const [broadcastFormData, setBroadcastFormData] = useState<{
+    deviceId: string;
+    messageTemplate: string;
+    destinationNumbers: string;
+  }>({
+    ...DEFAULT_BROADCAST_FORM_DATA,
+  });
+
+  const DEFAULT_LOGIN_FORM_DATA = Object.freeze({
     username: "",
     password: "",
   });
-  const [registrationFormData, setRegistrationFormData] = useState({
+  const [loginFormData, setLoginFormData] = useState<{
+    username: string;
+    password: string;
+  }>({
+    ...DEFAULT_LOGIN_FORM_DATA,
+  });
+
+  const DEFAULT_REGISTRATION_FORM_DATA = Object.freeze({
     fullName: "",
     email: "",
     whatsappNumber: "",
     source: "",
     purpose: "",
+  });
+  const [registrationFormData, setRegistrationFormData] = useState<{
+    fullName: string;
+    email: string;
+    whatsappNumber: string;
+    source: string;
+    purpose: string;
+  }>({
+    ...DEFAULT_REGISTRATION_FORM_DATA,
   });
 
   const [connectDeviceCode, setConnectDeviceCode] = useState("");
@@ -159,14 +193,12 @@ export default function Home() {
       !!Cookies.get("username")?.length &&
       !!Cookies.get("password")?.length
     ) {
-      getDevicesData();
+      getDevicesData(true);
     }
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      getDevicesData();
-    }
+    getDevicesData();
 
     setTimeout(() => {
       setShowConnectQRCodeModal(false);
@@ -174,9 +206,7 @@ export default function Home() {
   }, [showConnectQRCodeModal]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      getDevicesData();
-    }
+    getDevicesData();
   }, [showAddDeviceModal]);
 
   const handleBroadcastFormDataChange = (
@@ -266,7 +296,11 @@ export default function Home() {
     }
   };
 
-  const getDevicesData = async () => {
+  const getDevicesData = async (isIgnoreAuth: boolean = false) => {
+    if (!isAuthenticated && !isIgnoreAuth) {
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -280,7 +314,6 @@ export default function Home() {
         }));
       }
 
-      setShowLoginModal(false);
       setIsAuthenticated(true);
     } catch {
       // do nothing
@@ -299,14 +332,54 @@ export default function Home() {
     Cookies.set("username", loginFormData.username);
     Cookies.set("password", loginFormData.password);
 
-    await getDevicesData();
+    await getDevicesData(true);
+
+    setLoginFormData({ ...DEFAULT_LOGIN_FORM_DATA });
+    setShowLoginModal(false);
   };
 
   const handleLogout = async () => {
     Cookies.remove("username");
     Cookies.remove("password");
 
+    setLoginFormData({ ...DEFAULT_LOGIN_FORM_DATA });
     setIsAuthenticated(false);
+  };
+
+  const handleDeleteDevice = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isLoading) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      if (newDeviceFormData.deviceId !== "add-new-device") {
+        await axiosInstance.delete(`/device/${newDeviceFormData.deviceId}`);
+
+        toast({
+          title: "Success",
+          description: "Berhasil menghapus device",
+        });
+
+        setShowAddDeviceModal(false);
+      } else {
+        toast({
+          title: "Error",
+          description: "Device ID tidak valid",
+          variant: "destructive",
+        });
+      }
+    } catch {
+      // do nothing
+    } finally {
+      await getDevicesData();
+
+      setNewDeviceFormData({ ...DEFAULT_NEW_DEVICE_FORM_DATA });
+      setIsLoading(false);
+    }
   };
 
   const handleAddDevice = async (e: React.FormEvent) => {
@@ -353,7 +426,6 @@ export default function Home() {
             setShowConnectQRCodeModal(true);
           }
         } else {
-          await getDevicesData();
           setShowAddDeviceModal(false);
 
           toast({
@@ -371,6 +443,7 @@ export default function Home() {
     } catch {
       // do nothing
     } finally {
+      await getDevicesData();
       setIsLoading(false);
     }
   };
@@ -459,8 +532,11 @@ export default function Home() {
               <SelectContent>
                 {devices.map((device) => (
                   <SelectItem key={device.id} value={device.id}>
-                    {device.data.deviceName} (
-                    {device.data.deviceStatus.toUpperCase()})
+                    {device.data.deviceName} ({device.data.phoneNumber}) -{" "}
+                    {device.data.deviceStatus === "connected" ||
+                    device.data.deviceStatus === "syncing"
+                      ? "Connected"
+                      : "Disconnected"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -611,20 +687,12 @@ export default function Home() {
                       Add a New Device
                     </SelectItem>
                     {devices.map((device) => (
-                      <SelectItem
-                        key={device.id}
-                        value={device.id}
-                        disabled={
-                          device.data.deviceStatus === "connected" ||
-                          device.data.deviceStatus === "syncing"
-                        }
-                      >
-                        {device.data.deviceName} (
+                      <SelectItem key={device.id} value={device.id}>
+                        {device.data.deviceName} ({device.data.phoneNumber}) -{" "}
                         {device.data.deviceStatus === "connected" ||
                         device.data.deviceStatus === "syncing"
-                          ? "Already Connected"
+                          ? "Connected"
                           : "Disconnected"}
-                        )
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -643,12 +711,7 @@ export default function Home() {
                       }))
                     }
                     required={newDeviceFormData.deviceId === "add-new-device"}
-                    disabled={
-                      isLoading ||
-                      !["", "add-new-device", null].includes(
-                        newDeviceFormData.deviceId
-                      )
-                    }
+                    disabled={isLoading}
                     placeholder={
                       newDeviceFormData.deviceId === "add-new-device"
                         ? "Enter device name"
@@ -700,16 +763,42 @@ export default function Home() {
               ) : null}
 
               <DialogFooter>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Add Device"
+                <div
+                  className={cn(
+                    "flex items-center w-full",
+                    newDeviceFormData.deviceId === "add-new-device"
+                      ? "justify-end"
+                      : "justify-between"
                   )}
-                </Button>
+                >
+                  {newDeviceFormData.deviceId !== "add-new-device" ? (
+                    <Button
+                      disabled={isLoading}
+                      variant="destructive"
+                      onClick={handleDeleteDevice}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        "Delete Device"
+                      )}
+                    </Button>
+                  ) : null}
+
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      "Connect Device"
+                    )}
+                  </Button>
+                </div>
               </DialogFooter>
             </form>
           </DialogContent>
