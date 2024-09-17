@@ -761,6 +761,7 @@ export default function Home() {
                       }))
                     }
                     required={newDeviceFormData.method === "code"}
+                    placeholder="Enter your WhatsApp number"
                     disabled={isLoading}
                   />
                 </div>
