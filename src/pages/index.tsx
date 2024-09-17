@@ -1046,7 +1046,7 @@ export default function Home() {
         </Dialog>
 
         <footer className="mt-12 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
-          <p>Powered by Wazzop WhatsApp API Gateway</p>
+          <p>Powered by Klaster Digital WhatsApp API Gateway</p>
           <div className="mt-4 flex justify-center space-x-4">
             <a
               href="https://documenter.getpostman.com/view/1475413/2sA3XY7dxK"
