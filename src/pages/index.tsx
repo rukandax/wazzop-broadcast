@@ -75,12 +75,6 @@ export default function Home() {
           `${Cookies.get("username")}:${Cookies.get("password")}`
         )}`;
         config.headers["Authorization"] = basicAuth;
-      } else {
-        toast({
-          title: "Error",
-          description: "Username dan Password tidak valid",
-          variant: "destructive",
-        });
       }
 
       return config;
@@ -167,15 +161,11 @@ export default function Home() {
     fullName: "",
     email: "",
     whatsappNumber: "",
-    source: "",
-    purpose: "",
   });
   const [registrationFormData, setRegistrationFormData] = useState<{
     fullName: string;
     email: string;
     whatsappNumber: string;
-    source: string;
-    purpose: string;
   }>({
     ...DEFAULT_REGISTRATION_FORM_DATA,
   });
@@ -474,6 +464,28 @@ export default function Home() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isLoading) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await axiosInstance.post("/user", {
+        fullName: registrationFormData.fullName,
+        email: registrationFormData.email,
+        phoneNumber: formatPhoneNumber(registrationFormData.whatsappNumber),
+      });
+
+      setShowRegisterModal(false);
+      setShowRegisterSuccessModal(true);
+    } catch {
+      // do nothing
+    } finally {
+      await getDevicesData();
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -525,11 +537,7 @@ export default function Home() {
                 <Button
                   variant="outline"
                   size="sm"
-                  // onClick={() => setShowRegisterModal(true)}
-                  onClick={() => {
-                    window.location.href =
-                      "https://forms.gle/HWZuM18RaqmRWqrAA";
-                  }}
+                  onClick={() => setShowRegisterModal(true)}
                   className="flex items-center space-x-2"
                   disabled={isLoading}
                 >
@@ -897,10 +905,7 @@ export default function Home() {
           </DialogContent>
         </Dialog>
 
-        <Dialog
-          open={showConnectQRModal}
-          onOpenChange={setShowConnectQRModal}
-        >
+        <Dialog open={showConnectQRModal} onOpenChange={setShowConnectQRModal}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Scan QR Code</DialogTitle>
@@ -979,67 +984,6 @@ export default function Home() {
                   required
                   disabled={isLoading}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="source">Where did you hear about Wazzop?</Label>
-                <Select
-                  name="source"
-                  value={registrationFormData.source}
-                  onValueChange={(value) =>
-                    setRegistrationFormData((prevData) => ({
-                      ...prevData,
-                      source: value,
-                    }))
-                  }
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select source" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="social_media">
-                      Social Media (Facebook/Instagram/YouTube/TikTok)
-                    </SelectItem>
-                    <SelectItem value="friends_family">
-                      Friends/Family
-                    </SelectItem>
-                    <SelectItem value="search_engine">
-                      Search Engine (Google/Bing)
-                    </SelectItem>
-                    <SelectItem value="blog_article">Blog/Article</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="purpose">
-                  What&apos;s your purpose for using Wazzop?
-                </Label>
-                <Select
-                  name="purpose"
-                  value={registrationFormData.purpose}
-                  onValueChange={(value) =>
-                    setRegistrationFormData((prevData) => ({
-                      ...prevData,
-                      purpose: value,
-                    }))
-                  }
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select purpose" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="educational">
-                      Educational Purpose
-                    </SelectItem>
-                    <SelectItem value="marketing">Marketing Purpose</SelectItem>
-                    <SelectItem value="job_related">
-                      Other Job-related Purpose
-                    </SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isLoading}>
