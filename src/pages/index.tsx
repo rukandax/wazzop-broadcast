@@ -274,8 +274,6 @@ export default function Home() {
       return;
     }
 
-    setIsLoading(true);
-
     if (!broadcastFormData.deviceId.length) {
       toast({
         title: "Error",
@@ -303,6 +301,7 @@ export default function Home() {
       return;
     }
 
+    setIsLoading(true);
     const phoneNumbers = broadcastFormData.destinationNumbers.split("\n");
 
     if (!!phoneNumbers?.length) {
