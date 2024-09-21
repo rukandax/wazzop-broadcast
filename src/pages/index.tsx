@@ -276,10 +276,26 @@ export default function Home() {
 
     setIsLoading(true);
 
+    if (!broadcastFormData.deviceId.length) {
+      toast({
+        title: "Error",
+        description: "Harap pilih device terlebih dahulu",
+        variant: "destructive",
+      });
+    }
+
     if (!broadcastFormData.messageTemplate?.length) {
       toast({
         title: "Error",
         description: "Teks pesan tidak valid",
+        variant: "destructive",
+      });
+    }
+
+    if (!broadcastFormData.destinationNumbers?.length) {
+      toast({
+        title: "Error",
+        description: "Nomor tujuan tidak valid",
         variant: "destructive",
       });
     }
@@ -576,6 +592,7 @@ export default function Home() {
                 }));
               }}
               disabled={isLoading}
+              required
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a device" />
