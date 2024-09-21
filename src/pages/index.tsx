@@ -621,7 +621,7 @@ export default function Home() {
                   Anda perlu menambahkan setidaknya 1 device untuk bisa mengirim
                   pesan. Silahkan{" "}
                   {!isAuthenticated
-                    ? `klik &quote;Masuk&quote; dan isi kolom Username beserta Password, lalu `
+                    ? `klik 'Masuk' dan isi kolom Username beserta Password, lalu `
                     : ""}
                   klik &quote;Connect Device&quote; untuk menambahkan device
                   baru.
