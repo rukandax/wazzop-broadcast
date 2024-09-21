@@ -354,6 +354,8 @@ export default function Home() {
       });
 
       setIsLoading(false);
+      setShowSubmitProgressModal(false);
+      setSubmitIndex(0);
     } else {
       toast({
         title: "Error",
