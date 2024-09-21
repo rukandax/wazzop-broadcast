@@ -623,7 +623,7 @@ export default function Home() {
             />
           </div>
 
-          {/* <div className="space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="mediaUrl">Image URL</Label>
             <Input
               id="mediaUrl"
@@ -639,7 +639,7 @@ export default function Home() {
                 Cookies.set("media-url", e.target.value);
               }}
             />
-          </div> */}
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="destinationNumbers">
