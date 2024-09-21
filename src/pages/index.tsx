@@ -113,6 +113,7 @@ export default function Home() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showSubmitProgressModal, setShowSubmitProgressModal] = useState(false);
   const [showRegisterSuccessModal, setShowRegisterSuccessModal] =
     useState(false);
 
@@ -178,6 +179,7 @@ export default function Home() {
   const [showConnectCodeModal, setShowConnectCodeModal] = useState(false);
   const [showConnectQRModal, setShowConnectQRModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [submitIndex, setSubmitIndex] = useState(0);
 
   const messageTemplateRef = useRef<HTMLTextAreaElement>(null);
   const destinationNumbersRef = useRef<HTMLTextAreaElement>(null);
@@ -302,12 +304,19 @@ export default function Home() {
     }
 
     setIsLoading(true);
-    const phoneNumbers = broadcastFormData.destinationNumbers.split("\n");
+    setSubmitIndex(0);
+    setShowSubmitProgressModal(true);
+
+    const phoneNumbers = broadcastFormData.destinationNumbers
+      .trim()
+      .split("\n");
 
     if (!!phoneNumbers?.length) {
       let sentPhoneNumber: string[] = [];
 
       for (const phoneNumber of phoneNumbers) {
+        setSubmitIndex((prevData) => prevData + 1);
+
         if (
           sentPhoneNumber.includes(formatPhoneNumber(phoneNumber)) ||
           !phoneNumber
@@ -1097,6 +1106,30 @@ export default function Home() {
                 Tutup
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={showSubmitProgressModal}
+          onOpenChange={(isOpen) => {
+            if (isLoading) {
+              setShowSubmitProgressModal(true);
+            } else {
+              setShowSubmitProgressModal(isOpen);
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                Pengiriman Pesan Dalam Proses {submitIndex}/
+                {broadcastFormData.destinationNumbers.trim().split("\n").length}
+              </DialogTitle>
+            </DialogHeader>
+            <p>
+              Mohon untuk tidak memuat ulang (refresh) halaman dan juga tidak
+              menutup (close) halaman ini selama proses masih berlangsung
+            </p>
           </DialogContent>
         </Dialog>
 
