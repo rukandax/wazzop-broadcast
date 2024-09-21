@@ -317,7 +317,7 @@ export default function Home() {
             deviceId: broadcastFormData.deviceId,
             destination: formatPhoneNumber(phoneNumber),
             type: "person",
-            text: broadcastFormData.messageTemplate,
+            text: `${broadcastFormData.messageTemplate}\n\n> Pesan ini dikirim melalui Wazzop Broadcast`,
             media: {
               url: broadcastFormData.mediaUrl,
               type: "image",
