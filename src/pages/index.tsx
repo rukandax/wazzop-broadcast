@@ -339,6 +339,12 @@ export default function Home() {
           ...prevData,
           deviceId: data[0].id,
         }));
+      } else {
+        setDevices([]);
+        setBroadcastFormData((prevData) => ({
+          ...prevData,
+          deviceId: "",
+        }));
       }
 
       setIsAuthenticated(true);
