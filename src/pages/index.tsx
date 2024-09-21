@@ -308,7 +308,10 @@ export default function Home() {
       let sentPhoneNumber: string[] = [];
 
       for (const phoneNumber of phoneNumbers) {
-        if (sentPhoneNumber.includes(formatPhoneNumber(phoneNumber))) {
+        if (
+          sentPhoneNumber.includes(formatPhoneNumber(phoneNumber)) ||
+          !phoneNumber
+        ) {
           continue;
         }
 
