@@ -552,7 +552,7 @@ export default function Home() {
                   disabled={isLoading}
                 >
                   <UserCircle className="h-4 w-4" />
-                  <span>Log Out</span>
+                  <span>Keluar</span>
                 </Button>
               </>
             ) : (
@@ -565,7 +565,7 @@ export default function Home() {
                   disabled={isLoading}
                 >
                   <LogIn className="h-4 w-4" />
-                  <span>Log In</span>
+                  <span>Masuk</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -575,7 +575,7 @@ export default function Home() {
                   disabled={isLoading}
                 >
                   <UserPlus className="h-4 w-4" />
-                  <span>Register</span>
+                  <span>Daftar</span>
                 </Button>
               </>
             )}
@@ -584,7 +584,7 @@ export default function Home() {
 
         <form onSubmit={handleSubmitBroadcast} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="device">Select Device</Label>
+            <Label htmlFor="device">Pilih Device</Label>
             <Select
               value={broadcastFormData.deviceId || ""}
               onValueChange={(value: string) => {
@@ -597,7 +597,7 @@ export default function Home() {
               required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a device" />
+                <SelectValue placeholder="Pilih Device" />
               </SelectTrigger>
               <SelectContent>
                 {devices.map((device) => (
@@ -616,22 +616,26 @@ export default function Home() {
             {devices.length === 0 && (
               <Alert className="mt-2">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>No devices available</AlertTitle>
+                <AlertTitle>Tidak Ada Device Terdaftar</AlertTitle>
                 <AlertDescription>
-                  You need to add a new device before you can broadcast WhatsApp
-                  messages. Click on the &quot;Connect Device&quot; button to
-                  add a new device.
+                  Anda perlu menambahkan setidaknya 1 device untuk bisa mengirim
+                  pesan. Silahkan{" "}
+                  {!isAuthenticated
+                    ? `klik &quote;Masuk&quote; dan isi kolom Username beserta Password, lalu `
+                    : ""}
+                  klik &quote;Connect Device&quote; untuk menambahkan device
+                  baru.
                 </AlertDescription>
               </Alert>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="messageTemplate">Message Template</Label>
+            <Label htmlFor="messageTemplate">Teks Pesan</Label>
             <Textarea
               id="messageTemplate"
               name="messageTemplate"
-              placeholder="Enter WhatsApp text, support WhatsApp formatting"
+              placeholder="Masukan teks pesan, mendukung formatting WhatsApp"
               value={broadcastFormData.messageTemplate}
               onChange={(e) => {
                 handleBroadcastFormDataChange(e);
@@ -645,13 +649,13 @@ export default function Home() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="mediaUrl">Image URL</Label>
+            <Label htmlFor="mediaUrl">URL Gambar</Label>
             <Input
               id="mediaUrl"
               name="mediaUrl"
               disabled={isLoading}
               value={broadcastFormData.mediaUrl}
-              placeholder="Enter image url (video or audio is not supported yet)"
+              placeholder="Masukan URL gambar (tidak bisa video atau audio)"
               onChange={(e) => {
                 setBroadcastFormData((prevData) => ({
                   ...prevData,
@@ -663,13 +667,11 @@ export default function Home() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="destinationNumbers">
-              Destination WhatsApp Numbers
-            </Label>
+            <Label htmlFor="destinationNumbers">Nomor Tujuan</Label>
             <Textarea
               id="destinationNumbers"
               name="destinationNumbers"
-              placeholder="Enter WhatsApp numbers, one per line"
+              placeholder="Masukan nomor tujuan, satu nomor per baris"
               value={broadcastFormData.destinationNumbers}
               onChange={(e) => {
                 handleBroadcastFormDataChange(e);
@@ -689,10 +691,10 @@ export default function Home() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
+                Mengirim...
               </>
             ) : (
-              "Send Broadcast"
+              "Kirim Broadcast"
             )}
           </Button>
         </form>
@@ -700,9 +702,9 @@ export default function Home() {
         <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Login to Wazzop</DialogTitle>
+              <DialogTitle>Masuk Ke Wazzop</DialogTitle>
               <DialogDescription>
-                Please log in to send your Wazzop broadcast.
+                Silahkan login untuk bisa menggunakan Wazzop
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -711,6 +713,7 @@ export default function Home() {
                 <Input
                   id="username"
                   name="username"
+                  placeholder="Masukan username"
                   required
                   disabled={isLoading}
                   value={loginFormData.username}
@@ -728,6 +731,7 @@ export default function Home() {
                   id="password"
                   name="password"
                   type="password"
+                  placeholder="Masukan password"
                   required
                   disabled={isLoading}
                   value={loginFormData.password}
@@ -744,10 +748,10 @@ export default function Home() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
+                      Dalam Proses...
                     </>
                   ) : (
-                    "Login"
+                    "Masuk"
                   )}
                 </Button>
               </DialogFooter>
@@ -758,14 +762,14 @@ export default function Home() {
         <Dialog open={showAddDeviceModal} onOpenChange={setShowAddDeviceModal}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Connect Device to Wazzop</DialogTitle>
+              <DialogTitle>Connect Device</DialogTitle>
               <DialogDescription>
-                Add a new device or connect to an existing one.
+                Tambah Device Baru atau Connect Device yang sudah ada sebelumnya
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddDevice} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="device">Select or Add Device</Label>
+                <Label htmlFor="device">Tambah Device atau Pilih Device</Label>
                 <Select
                   onValueChange={(value: string) => {
                     setNewDeviceFormData((prevData) => ({
@@ -776,12 +780,9 @@ export default function Home() {
                   value={newDeviceFormData.deviceId}
                   disabled={isLoading}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select or Add Device" />
-                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem key="add-new-device" value="add-new-device">
-                      Add a New Device
+                      + Tambah Device Baru
                     </SelectItem>
                     {devices.map((device) => (
                       <SelectItem key={device.id} value={device.id}>
@@ -799,7 +800,7 @@ export default function Home() {
               </div>
               {newDeviceFormData.deviceId === "add-new-device" ? (
                 <div className="space-y-2">
-                  <Label htmlFor="deviceName">Device Name</Label>
+                  <Label htmlFor="deviceName">Nama Device</Label>
                   <Input
                     id="deviceName"
                     value={newDeviceFormData.name}
@@ -813,7 +814,7 @@ export default function Home() {
                     disabled={isLoading}
                     placeholder={
                       newDeviceFormData.deviceId === "add-new-device"
-                        ? "Enter device name"
+                        ? "Masukan nama device"
                         : devices.find(
                             (dev) => dev.id === newDeviceFormData.deviceId
                           )?.data.deviceName || ""
@@ -822,7 +823,7 @@ export default function Home() {
                 </div>
               ) : null}
               <div className="space-y-2">
-                <Label>Connect Method</Label>
+                <Label>Metode Connect</Label>
                 <RadioGroup
                   value={newDeviceFormData.method}
                   onValueChange={(value) =>
@@ -845,7 +846,7 @@ export default function Home() {
               </div>
               {newDeviceFormData.method === "code" ? (
                 <div className="space-y-2">
-                  <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
+                  <Label htmlFor="whatsappNumber">Nomor WhatsApp</Label>
                   <Input
                     id="whatsappNumber"
                     value={newDeviceFormData.whatsappNumber}
@@ -856,7 +857,7 @@ export default function Home() {
                       }))
                     }
                     required={newDeviceFormData.method === "code"}
-                    placeholder="Enter your WhatsApp number"
+                    placeholder="Masukan nomor WhatsApp"
                     disabled={isLoading}
                   />
                 </div>
@@ -880,10 +881,10 @@ export default function Home() {
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Loading...
+                          Dalam Proses...
                         </>
                       ) : (
-                        "Delete Device"
+                        "Hapus Device"
                       )}
                     </Button>
                   ) : null}
@@ -892,7 +893,7 @@ export default function Home() {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
+                        Dalam Proses...
                       </>
                     ) : (
                       "Connect Device"
@@ -910,9 +911,10 @@ export default function Home() {
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Enter WhatsApp Code</DialogTitle>
+              <DialogTitle>Masukan WhatsApp Code</DialogTitle>
               <DialogDescription>
-                Please enter this 8-digit code on your WhatsApp Device.
+                Silahkan masukan 8 digit WhatsApp Code dibawah ini melalui
+                perangkat Anda
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-2">
@@ -963,7 +965,7 @@ export default function Home() {
             <DialogHeader>
               <DialogTitle>Scan QR Code</DialogTitle>
               <DialogDescription>
-                Please scan this QR code with your WhatsApp device.
+                Silahkan scan QR Code dibawah ini melalui perangkat Anda
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-center items-center h-64 bg-gray-100">
@@ -983,17 +985,18 @@ export default function Home() {
         <Dialog open={showRegisterModal} onOpenChange={setShowRegisterModal}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Register for Wazzop</DialogTitle>
+              <DialogTitle>Daftar Wazzop</DialogTitle>
               <DialogDescription>
-                Create your account to start using Wazzop.
+                Buat akun untuk mulai menggunakan Wazzop
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName">Nama Lengkap</Label>
                 <Input
                   id="fullName"
                   name="fullName"
+                  placeholder="Masukan nama lengkap"
                   value={registrationFormData.fullName}
                   onChange={(e) =>
                     setRegistrationFormData((prevData) => ({
@@ -1011,6 +1014,7 @@ export default function Home() {
                   id="email"
                   name="email"
                   type="email"
+                  placeholder="Masukan email"
                   value={registrationFormData.email}
                   onChange={(e) =>
                     setRegistrationFormData((prevData) => ({
@@ -1023,10 +1027,11 @@ export default function Home() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
+                <Label htmlFor="whatsappNumber">Nomor WhatsApp</Label>
                 <Input
                   id="whatsappNumber"
                   name="whatsappNumber"
+                  placeholder="Masukan nomor WhatsApp"
                   value={registrationFormData.whatsappNumber}
                   onChange={(e) =>
                     setRegistrationFormData((prevData) => ({
@@ -1043,10 +1048,10 @@ export default function Home() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Registering...
+                      Dalam Proses...
                     </>
                   ) : (
-                    "Register"
+                    "Daftar"
                   )}
                 </Button>
               </DialogFooter>
@@ -1060,25 +1065,25 @@ export default function Home() {
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Registration Successful</DialogTitle>
+              <DialogTitle>Pendaftaran Berhasil</DialogTitle>
               <DialogDescription>
-                Your Wazzop account has been created successfully.
+                Akun Wazzop Anda berhasil didaftarkan
               </DialogDescription>
             </DialogHeader>
             <p>
-              Your username and password have been sent to the email address you
-              provided. Please check your email to access your account.
+              Username dan Password Wazzop dikirimkan melalui email, silahkan
+              cek email Anda untuk mulai menggunakan Wazzop
             </p>
             <DialogFooter>
               <Button onClick={() => setShowRegisterSuccessModal(false)}>
-                Close
+                Tutup
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
         <footer className="mt-12 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
-          <p>Powered by Klaster Digital WhatsApp API Gateway</p>
+          <p>Dibuat Oleh Klaster Digital</p>
           <div className="mt-4 flex justify-center space-x-4">
             <a
               href="https://documenter.getpostman.com/view/1475413/2sA3XY7dxK"
