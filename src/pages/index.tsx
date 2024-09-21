@@ -390,6 +390,9 @@ export default function Home() {
     Cookies.remove("password");
 
     setLoginFormData({ ...DEFAULT_LOGIN_FORM_DATA });
+    setDevices([]);
+    setBroadcastFormData((prevData) => ({ ...prevData, deviceId: "" }));
+
     setIsAuthenticated(false);
   };
 
@@ -623,8 +626,7 @@ export default function Home() {
                   {!isAuthenticated
                     ? `klik 'Masuk' dan isi kolom Username beserta Password, lalu `
                     : ""}
-                  klik &quote;Connect Device&quote; untuk menambahkan device
-                  baru.
+                  klik &apos;Connect Device&apos; untuk menambahkan device baru.
                 </AlertDescription>
               </Alert>
             )}
