@@ -628,7 +628,6 @@ export default function Home() {
             <Input
               id="mediaUrl"
               name="mediaUrl"
-              required
               disabled={isLoading}
               value={broadcastFormData.mediaUrl}
               placeholder="Enter image url (video or audio is not supported yet)"
