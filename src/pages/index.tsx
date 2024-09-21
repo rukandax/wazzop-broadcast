@@ -325,7 +325,7 @@ export default function Home() {
           });
 
           const randomDelay =
-            Math.floor(Math.random() * (3000 - 1000 + 1)) + 1000;
+            Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
           await delay(randomDelay);
         } catch {
           // do nothing
