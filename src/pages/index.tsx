@@ -136,11 +136,13 @@ export default function Home() {
   const DEFAULT_BROADCAST_FORM_DATA = Object.freeze({
     deviceId: "",
     messageTemplate: "",
+    mediaUrl: "",
     destinationNumbers: "",
   });
   const [broadcastFormData, setBroadcastFormData] = useState<{
     deviceId: string;
     messageTemplate: string;
+    mediaUrl: string;
     destinationNumbers: string;
   }>({
     ...DEFAULT_BROADCAST_FORM_DATA,
@@ -186,6 +188,13 @@ export default function Home() {
       !!Cookies.get("password")?.length
     ) {
       getDevicesData(true);
+    }
+
+    if (!!Cookies.get("media-url")) {
+      setBroadcastFormData((prevData) => ({
+        ...prevData,
+        mediaUrl: Cookies.get("media-url") || "",
+      }));
     }
 
     if (!!Cookies.get("message-template")) {
@@ -285,6 +294,10 @@ export default function Home() {
             destination: formatPhoneNumber(phoneNumber),
             type: "person",
             text: broadcastFormData.messageTemplate,
+            media: {
+              url: broadcastFormData.mediaUrl,
+              type: "image",
+            },
           });
 
           const randomDelay =
@@ -609,6 +622,26 @@ export default function Home() {
               ref={messageTemplateRef}
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="mediaUrl">Image URL</Label>
+            <Input
+              id="mediaUrl"
+              name="mediaUrl"
+              required
+              disabled={isLoading}
+              value={broadcastFormData.mediaUrl}
+              placeholder="Enter image url (video or audio is not supported yet)"
+              onChange={(e) => {
+                setBroadcastFormData((prevData) => ({
+                  ...prevData,
+                  mediaUrl: e.target.value,
+                }));
+                Cookies.set("media-url", e.target.value);
+              }}
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="destinationNumbers">
               Destination WhatsApp Numbers
