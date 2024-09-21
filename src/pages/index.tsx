@@ -305,7 +305,13 @@ export default function Home() {
     const phoneNumbers = broadcastFormData.destinationNumbers.split("\n");
 
     if (!!phoneNumbers?.length) {
+      let sentPhoneNumber: string[] = [];
+
       for (const phoneNumber of phoneNumbers) {
+        if (sentPhoneNumber.includes(formatPhoneNumber(phoneNumber))) {
+          continue;
+        }
+
         try {
           await axiosInstance.post("/send", {
             deviceId: broadcastFormData.deviceId,
@@ -324,7 +330,11 @@ export default function Home() {
         } catch {
           // do nothing
         }
+
+        sentPhoneNumber.push(formatPhoneNumber(phoneNumber));
       }
+
+      sentPhoneNumber = [];
 
       toast({
         title: "Success",
