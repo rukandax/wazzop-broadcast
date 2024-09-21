@@ -282,6 +282,7 @@ export default function Home() {
         description: "Harap pilih device terlebih dahulu",
         variant: "destructive",
       });
+      return;
     }
 
     if (!broadcastFormData.messageTemplate?.length) {
@@ -290,6 +291,7 @@ export default function Home() {
         description: "Teks pesan tidak valid",
         variant: "destructive",
       });
+      return;
     }
 
     if (!broadcastFormData.destinationNumbers?.length) {
@@ -298,6 +300,7 @@ export default function Home() {
         description: "Nomor tujuan tidak valid",
         variant: "destructive",
       });
+      return;
     }
 
     const phoneNumbers = broadcastFormData.destinationNumbers.split("\n");
