@@ -784,7 +784,7 @@ export default function Home() {
             </DialogHeader>
             <form onSubmit={handleAddDevice} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="device">Tambah Device atau Pilih Device</Label>
+                <Label htmlFor="device">Tambah atau Pilih Device</Label>
                 <Select
                   onValueChange={(value: string) => {
                     setNewDeviceFormData((prevData) => ({
@@ -795,6 +795,9 @@ export default function Home() {
                   value={newDeviceFormData.deviceId}
                   disabled={isLoading}
                 >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tambah atau Pilih Device" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem key="add-new-device" value="add-new-device">
                       + Tambah Device Baru
