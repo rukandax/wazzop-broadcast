@@ -216,19 +216,7 @@ export default function Home() {
 
   useEffect(() => {
     getDevicesData();
-
-    setTimeout(() => {
-      setShowConnectQRModal(false);
-    }, 58_000);
-  }, [showConnectQRModal]);
-
-  useEffect(() => {
-    getDevicesData();
-
-    setTimeout(() => {
-      setShowConnectCodeModal(false);
-    }, 58_000);
-  }, [showConnectCodeModal]);
+  }, [showConnectQRModal, showConnectCodeModal]);
 
   useEffect(() => {
     getDevicesData();
