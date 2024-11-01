@@ -43,7 +43,7 @@ import {
 } from "@/components/ui/input-otp";
 import { cn } from "@/lib/utils";
 import formatPhoneNumber from "@/lib/formatPhoneNumber";
-import Link from "next/link";
+// import Link from "next/link";
 
 type Device = {
   id: string;
@@ -583,7 +583,7 @@ export default function Home() {
                   <LogIn className="h-4 w-4" />
                   <span>Masuk</span>
                 </Button>
-                {/* <Button
+                <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowRegisterModal(true)}
@@ -592,8 +592,8 @@ export default function Home() {
                 >
                   <UserPlus className="h-4 w-4" />
                   <span>Daftar Gratis</span>
-                </Button> */}
-                <Link
+                </Button>
+                {/* <Link
                   href="https://forms.gle/3Dm9gbmf4u2JfqpHA"
                   target="_blank"
                 >
@@ -606,7 +606,7 @@ export default function Home() {
                     <UserPlus className="h-4 w-4" />
                     <span>Daftar Gratis</span>
                   </Button>
-                </Link>
+                </Link> */}
               </>
             )}
           </div>
