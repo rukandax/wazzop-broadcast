@@ -320,7 +320,8 @@ export default function Home() {
           toast({
             title: "Error",
             description:
-              error?.response?.data?.error?.message || "Terjadi kesalahan Saat Mengirim Pesan",
+              error?.response?.data?.error?.message ||
+              "Terjadi kesalahan Saat Mengirim Pesan",
             variant: "destructive",
           });
         }
@@ -361,8 +362,14 @@ export default function Home() {
       }
 
       setIsAuthenticated(true);
-    } catch {
-      // do nothing
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error?.response?.data?.error?.message ||
+          "Terjadi kesalahan Saat Mengambil Data Device",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -421,8 +428,14 @@ export default function Home() {
           variant: "destructive",
         });
       }
-    } catch {
-      // do nothing
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error?.response?.data?.error?.message ||
+          "Terjadi kesalahan Saat Menghapus Device",
+        variant: "destructive",
+      });
     } finally {
       await getDevicesData();
 
@@ -482,8 +495,14 @@ export default function Home() {
           variant: "destructive",
         });
       }
-    } catch {
-      // do nothing
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error?.response?.data?.error?.message ||
+          "Terjadi kesalahan Saat Menambahkan Device",
+        variant: "destructive",
+      });
     } finally {
       await getDevicesData();
       setIsLoading(false);
@@ -508,8 +527,14 @@ export default function Home() {
 
       setShowRegisterModal(false);
       setShowRegisterSuccessModal(true);
-    } catch {
-      // do nothing
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error?.response?.data?.error?.message ||
+          "Terjadi kesalahan Saat Mendaftar",
+        variant: "destructive",
+      });
     } finally {
       await getDevicesData();
       setIsLoading(false);
