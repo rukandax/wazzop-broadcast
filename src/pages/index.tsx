@@ -314,19 +314,19 @@ export default function Home() {
           const randomDelay =
             Math.floor(Math.random() * (4000 - 2000 + 1)) + 2000;
           await delay(randomDelay);
-        } catch {
-          // do nothing
-        }
 
-        sentPhoneNumber.push(formatPhoneNumber(phoneNumber));
+          sentPhoneNumber.push(formatPhoneNumber(phoneNumber));
+        } catch (error: any) {
+          toast({
+            title: "Error",
+            description:
+              error?.response?.data?.error?.message || "Terjadi kesalahan Saat Mengirim Pesan",
+            variant: "destructive",
+          });
+        }
       }
 
       sentPhoneNumber = [];
-
-      toast({
-        title: "Success",
-        description: "Pesan sedang dalam proses pengiriman",
-      });
 
       setIsLoading(false);
       setShowSubmitProgressModal(false);
