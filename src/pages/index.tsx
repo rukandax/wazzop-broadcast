@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import {
   UserCircle,
@@ -35,15 +34,8 @@ import {
   UserPlus,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
 import { cn } from "@/lib/utils";
 import formatPhoneNumber from "@/lib/formatPhoneNumber";
-// import Link from "next/link";
 
 type Device = {
   id: string;
@@ -123,14 +115,10 @@ export default function Home() {
   const DEFAULT_NEW_DEVICE_FORM_DATA = Object.freeze({
     deviceId: "add-new-device",
     name: "",
-    method: "code",
-    whatsappNumber: "",
   });
   const [newDeviceFormData, setNewDeviceFormData] = useState<{
     deviceId: string;
     name: string;
-    method: string;
-    whatsappNumber: string;
   }>({
     ...DEFAULT_NEW_DEVICE_FORM_DATA,
   });
@@ -174,10 +162,8 @@ export default function Home() {
     ...DEFAULT_REGISTRATION_FORM_DATA,
   });
 
-  const [connectDeviceCode, setConnectDeviceCode] = useState("");
   const [connectDeviceQR, setConnectDeviceQR] = useState("");
 
-  const [showConnectCodeModal, setShowConnectCodeModal] = useState(false);
   const [showConnectQRModal, setShowConnectQRModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [submitIndex, setSubmitIndex] = useState(0);
@@ -217,7 +203,7 @@ export default function Home() {
 
   useEffect(() => {
     getDevicesData();
-  }, [showConnectQRModal, showConnectCodeModal]);
+  }, [showConnectQRModal]);
 
   useEffect(() => {
     getDevicesData();
@@ -475,19 +461,12 @@ export default function Home() {
               newDeviceFormData.deviceId === "add-new-device"
                 ? addDeviceData.id
                 : newDeviceFormData.deviceId,
-            method: newDeviceFormData.method,
-            phoneNumber: formatPhoneNumber(newDeviceFormData.whatsappNumber),
           }
         );
 
         if (!connectDeviceData?.isConnected) {
-          if (newDeviceFormData.method === "code") {
-            setConnectDeviceCode(connectDeviceData.pairingCode);
-            setShowConnectCodeModal(true);
-          } else if (newDeviceFormData.method === "qr") {
-            setConnectDeviceQR(connectDeviceData.qrString);
-            setShowConnectQRModal(true);
-          }
+          setConnectDeviceQR(connectDeviceData.qrString);
+          setShowConnectQRModal(true);
         } else {
           setShowAddDeviceModal(false);
 
@@ -854,47 +833,6 @@ export default function Home() {
                   />
                 </div>
               ) : null}
-              <div className="space-y-2">
-                <Label>Metode Connect</Label>
-                <RadioGroup
-                  value={newDeviceFormData.method}
-                  onValueChange={(value) =>
-                    setNewDeviceFormData((prevData) => ({
-                      ...prevData,
-                      method: value,
-                    }))
-                  }
-                  disabled={isLoading}
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="code" id="code" />
-                    <Label htmlFor="code">Input Code</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="qr" id="qr" />
-                    <Label htmlFor="qr">Scan QR</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-              {newDeviceFormData.method === "code" ? (
-                <div className="space-y-2">
-                  <Label htmlFor="whatsappNumber">Nomor WhatsApp</Label>
-                  <Input
-                    id="whatsappNumber"
-                    value={newDeviceFormData.whatsappNumber}
-                    onChange={(e) =>
-                      setNewDeviceFormData((prevData) => ({
-                        ...prevData,
-                        whatsappNumber: e.target.value,
-                      }))
-                    }
-                    required={newDeviceFormData.method === "code"}
-                    placeholder="Masukan nomor WhatsApp"
-                    disabled={isLoading}
-                  />
-                </div>
-              ) : null}
-
               <DialogFooter>
                 <div
                   className={cn(
@@ -934,61 +872,6 @@ export default function Home() {
                 </div>
               </DialogFooter>
             </form>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog
-          open={showConnectCodeModal}
-          onOpenChange={setShowConnectCodeModal}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Masukan WhatsApp Code</DialogTitle>
-              <DialogDescription>
-                Silahkan masukan 8 digit WhatsApp Code dibawah ini melalui
-                perangkat Anda
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-2">
-              <Label htmlFor="codeInput">WhatsApp Code</Label>
-              <InputOTP maxLength={8} value={connectDeviceCode} disabled>
-                <InputOTPGroup>
-                  <InputOTPSlot
-                    className="text-black font-semibold"
-                    index={0}
-                  />
-                  <InputOTPSlot
-                    className="text-black font-semibold"
-                    index={1}
-                  />
-                  <InputOTPSlot
-                    className="text-black font-semibold"
-                    index={2}
-                  />
-                  <InputOTPSlot
-                    className="text-black font-semibold"
-                    index={3}
-                  />
-                  <InputOTPSeparator />
-                  <InputOTPSlot
-                    className="text-black font-semibold"
-                    index={4}
-                  />
-                  <InputOTPSlot
-                    className="text-black font-semibold"
-                    index={5}
-                  />
-                  <InputOTPSlot
-                    className="text-black font-semibold"
-                    index={6}
-                  />
-                  <InputOTPSlot
-                    className="text-black font-semibold"
-                    index={7}
-                  />
-                </InputOTPGroup>
-              </InputOTP>
-            </div>
           </DialogContent>
         </Dialog>
 
