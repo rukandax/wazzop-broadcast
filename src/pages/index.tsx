@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Head from "next/head";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -36,6 +36,9 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import formatPhoneNumber from "@/lib/formatPhoneNumber";
+import MultipleSelector, {
+  Option,
+} from "@/components/custom/multiple-selector";
 
 type Device = {
   id: string;
@@ -48,6 +51,19 @@ type Device = {
     updatedAt: number;
     userId: string;
   };
+};
+
+type Group = {
+  id: string;
+  subject: string;
+  size: number;
+  owner: string;
+  creation: number;
+  restrict: boolean;
+  announce: boolean;
+  isCommunityAnnounce: boolean;
+  isCommunity: boolean;
+  isAdmin: boolean;
 };
 
 export default function Home() {
@@ -111,6 +127,18 @@ export default function Home() {
     useState(false);
 
   const [devices, setDevices] = useState<Device[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+
+  const groupOptions = useMemo(
+    () =>
+      groups.map((group) => ({
+        label: `${group.subject} (${group.size} Member)${
+          group.isAdmin ? " - Admin" : ""
+        }`,
+        value: group.id,
+      })),
+    [groups]
+  );
 
   const DEFAULT_NEW_DEVICE_FORM_DATA = Object.freeze({
     deviceId: "add-new-device",
@@ -127,13 +155,17 @@ export default function Home() {
     deviceId: "",
     messageTemplate: "",
     mediaUrl: "",
-    destinationNumbers: "",
+    destinationType: "person",
+    destinations: "",
+    groupIds: [],
   });
   const [broadcastFormData, setBroadcastFormData] = useState<{
     deviceId: string;
     messageTemplate: string;
     mediaUrl: string;
-    destinationNumbers: string;
+    destinationType: string;
+    destinations: string;
+    groupIds: Option[];
   }>({
     ...DEFAULT_BROADCAST_FORM_DATA,
   });
@@ -196,7 +228,7 @@ export default function Home() {
     if (!!Cookies.get("destination-number")) {
       setBroadcastFormData((prevData) => ({
         ...prevData,
-        destinationNumbers: Cookies.get("destination-number") || "",
+        destinations: Cookies.get("destination-number") || "",
       }));
     }
   }, []);
@@ -208,6 +240,12 @@ export default function Home() {
   useEffect(() => {
     getDevicesData();
   }, [showAddDeviceModal]);
+
+  useEffect(() => {
+    if (broadcastFormData.destinationType === "group") {
+      getGroupsData();
+    }
+  }, [broadcastFormData.destinationType]);
 
   const handleBroadcastFormDataChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>
@@ -229,7 +267,7 @@ export default function Home() {
     if (destinationNumbersRef.current) {
       adjustTextareaHeight(destinationNumbersRef.current);
     }
-  }, [broadcastFormData.messageTemplate, broadcastFormData.destinationNumbers]);
+  }, [broadcastFormData.messageTemplate, broadcastFormData.destinations]);
 
   const delay = async (delay: number) => {
     return await new Promise((resolve) => {
@@ -251,7 +289,7 @@ export default function Home() {
       return;
     }
 
-    if (!broadcastFormData.deviceId.length) {
+    if (!broadcastFormData.deviceId) {
       toast({
         title: "Error",
         description: "Harap pilih device terlebih dahulu",
@@ -269,10 +307,25 @@ export default function Home() {
       return;
     }
 
-    if (!broadcastFormData.destinationNumbers?.length) {
+    if (
+      broadcastFormData.destinationType === "person" &&
+      !broadcastFormData.destinations?.length
+    ) {
       toast({
         title: "Error",
         description: "Nomor tujuan tidak valid",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (
+      broadcastFormData.destinationType === "group" &&
+      !broadcastFormData.groupIds?.length
+    ) {
+      toast({
+        title: "Error",
+        description: "Group tujuan tidak valid",
         variant: "destructive",
       });
       return;
@@ -282,19 +335,22 @@ export default function Home() {
     setSubmitIndex(0);
     setShowSubmitProgressModal(true);
 
-    const phoneNumbers = broadcastFormData.destinationNumbers
-      .trim()
-      .split("\n");
+    const phoneNumbers = broadcastFormData.destinations.trim().split("\n");
 
     if (!!phoneNumbers?.length) {
-      let sentPhoneNumber: string[] = [];
+      let sendDestinationItem: string[] = [];
 
-      for (const phoneNumber of phoneNumbers) {
+      const anchorLoop =
+        broadcastFormData.destinationType === "person"
+          ? phoneNumbers
+          : broadcastFormData.groupIds.map((group) => group.value);
+
+      for (const destinationItem of anchorLoop) {
         setSubmitIndex((prevData) => prevData + 1);
 
         if (
-          sentPhoneNumber.includes(formatPhoneNumber(phoneNumber)) ||
-          !phoneNumber
+          sendDestinationItem.includes(formatPhoneNumber(destinationItem)) ||
+          !destinationItem
         ) {
           continue;
         }
@@ -302,20 +358,25 @@ export default function Home() {
         try {
           await axiosInstance.post("/send", {
             deviceId: broadcastFormData.deviceId,
-            destination: formatPhoneNumber(phoneNumber),
-            type: "person",
+            destination:
+              broadcastFormData.destinationType === "person"
+                ? formatPhoneNumber(destinationItem)
+                : destinationItem,
+            type: broadcastFormData.destinationType,
             text: `${broadcastFormData.messageTemplate}\n\n> Pesan ini dikirim melalui Wazzop Broadcast`,
-            media: {
-              url: broadcastFormData.mediaUrl,
-              type: "image",
-            },
+            media: !!broadcastFormData.mediaUrl
+              ? {
+                  url: broadcastFormData.mediaUrl,
+                  type: "image",
+                }
+              : undefined,
           });
 
           const randomDelay =
             Math.floor(Math.random() * (4000 - 2000 + 1)) + 2000;
           await delay(randomDelay);
 
-          sentPhoneNumber.push(formatPhoneNumber(phoneNumber));
+          sendDestinationItem.push(formatPhoneNumber(destinationItem));
         } catch (error: any) {
           toast({
             title: "Error",
@@ -327,7 +388,7 @@ export default function Home() {
         }
       }
 
-      sentPhoneNumber = [];
+      sendDestinationItem = [];
 
       setIsLoading(false);
       setShowSubmitProgressModal(false);
@@ -355,11 +416,12 @@ export default function Home() {
         setDevices(data);
       } else {
         setDevices([]);
-        setBroadcastFormData((prevData) => ({
-          ...prevData,
-          deviceId: "",
-        }));
       }
+
+      setBroadcastFormData((prevData) => ({
+        ...prevData,
+        deviceId: "",
+      }));
 
       setIsAuthenticated(true);
     } catch (error: any) {
@@ -368,6 +430,49 @@ export default function Home() {
         description:
           error?.response?.data?.error?.message ||
           "Terjadi kesalahan Saat Mengambil Data Device",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getGroupsData = async () => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const { data } = await axiosInstance.get<Group[]>("/group", {
+        params: {
+          deviceId: broadcastFormData.deviceId,
+        },
+      });
+
+      if (data.length > 0) {
+        const groupData = data.filter(
+          (group) =>
+            ((group.announce || group.isCommunityAnnounce) && group.isAdmin) ||
+            (!group.announce && !group.isCommunityAnnounce && !group.isAdmin)
+        );
+
+        setGroups(groupData);
+      } else {
+        setGroups([]);
+      }
+
+      setBroadcastFormData((prevData) => ({
+        ...prevData,
+        groupId: "",
+      }));
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error?.response?.data?.error?.message ||
+          "Terjadi kesalahan Saat Mengambil Data Grup",
         variant: "destructive",
       });
     } finally {
@@ -647,7 +752,7 @@ export default function Home() {
                 ))}
               </SelectContent>
             </Select>
-            {devices.length === 0 && (
+            {devices.length === 0 ? (
               <Alert className="mt-2">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Tidak Ada Device Terdaftar</AlertTitle>
@@ -660,6 +765,17 @@ export default function Home() {
                   klik &apos;Connect Device&apos; untuk menambahkan device baru.
                 </AlertDescription>
               </Alert>
+            ) : (
+              !broadcastFormData.deviceId && (
+                <Alert className="mt-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Silahkan Pilih Device</AlertTitle>
+                  <AlertDescription>
+                    Anda perlu memilih setidaknya 1 device untuk bisa mengirim
+                    pesan.
+                  </AlertDescription>
+                </Alert>
+              )
             )}
           </div>
 
@@ -675,7 +791,7 @@ export default function Home() {
                 Cookies.set("message-template", e.target.value);
               }}
               required
-              disabled={isLoading}
+              disabled={isLoading || !broadcastFormData.deviceId}
               className="min-h-[100px] resize-none overflow-hidden"
               ref={messageTemplateRef}
             />
@@ -686,7 +802,7 @@ export default function Home() {
             <Input
               id="mediaUrl"
               name="mediaUrl"
-              disabled={isLoading}
+              disabled={isLoading || !broadcastFormData.deviceId}
               value={broadcastFormData.mediaUrl}
               placeholder="Masukan URL gambar (tidak bisa video atau audio)"
               onChange={(e) => {
@@ -700,22 +816,70 @@ export default function Home() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="destinationNumbers">Nomor Tujuan</Label>
-            <Textarea
-              id="destinationNumbers"
-              name="destinationNumbers"
-              placeholder="Masukan nomor tujuan, satu nomor per baris"
-              value={broadcastFormData.destinationNumbers}
-              onChange={(e) => {
-                handleBroadcastFormDataChange(e);
-                Cookies.set("destination-number", e.target.value);
+            <Label htmlFor="destinations">Jenis Tujuan</Label>
+            <Select
+              value={broadcastFormData.destinationType || ""}
+              onValueChange={(value: string) => {
+                setBroadcastFormData((prevData) => ({
+                  ...prevData,
+                  destinationType: value,
+                }));
               }}
+              disabled={isLoading || !broadcastFormData.deviceId}
               required
-              disabled={isLoading}
-              className="min-h-[100px] resize-none overflow-hidden"
-              ref={destinationNumbersRef}
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih Jenis Tujuan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="person">List Nomor WhatsApp</SelectItem>
+                <SelectItem value="group">List Grup WhatsApp</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {broadcastFormData.destinationType === "person" && (
+            <div className="space-y-2">
+              <Label htmlFor="destinations">Nomor Tujuan</Label>
+              <Textarea
+                id="destinations"
+                name="destinations"
+                placeholder="Masukan nomor tujuan, satu nomor per baris"
+                value={broadcastFormData.destinations}
+                onChange={(e) => {
+                  handleBroadcastFormDataChange(e);
+                  Cookies.set("destination-number", e.target.value);
+                }}
+                required
+                disabled={isLoading || !broadcastFormData.deviceId}
+                className="min-h-[100px] resize-none overflow-hidden"
+                ref={destinationNumbersRef}
+              />
+            </div>
+          )}
+
+          {!isLoading && broadcastFormData.destinationType === "group" && (
+            <div className="space-y-2">
+              <Label htmlFor="destinations">Grup Tujuan</Label>
+              <MultipleSelector
+                value={broadcastFormData.groupIds || []}
+                onChange={(values: Option[]) => {
+                  setBroadcastFormData((prevData) => ({
+                    ...prevData,
+                    groupIds: values,
+                  }));
+                }}
+                defaultOptions={groupOptions}
+                placeholder="Pilih Grup Tujuan"
+                emptyIndicator={
+                  <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                    Tidak Ada Grup Yang Bisa Dipilih
+                  </p>
+                }
+              />
+            </div>
+          )}
+
           <Button
             type="submit"
             disabled={isLoading || devices.length === 0}
@@ -724,7 +888,7 @@ export default function Home() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Mengirim...
+                Loading...
               </>
             ) : (
               "Kirim Broadcast"
@@ -1036,7 +1200,7 @@ export default function Home() {
             <DialogHeader>
               <DialogTitle>
                 Pengiriman Pesan Dalam Proses {submitIndex}/
-                {broadcastFormData.destinationNumbers.trim().split("\n").length}
+                {broadcastFormData.destinations.trim().split("\n").length}
               </DialogTitle>
             </DialogHeader>
             <p>
