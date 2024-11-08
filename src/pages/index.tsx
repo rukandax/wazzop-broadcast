@@ -245,7 +245,7 @@ export default function Home() {
     if (broadcastFormData.destinationType === "group") {
       getGroupsData();
     }
-  }, [broadcastFormData.destinationType]);
+  }, [broadcastFormData.destinationType, broadcastFormData.deviceId]);
 
   const handleBroadcastFormDataChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>
@@ -454,8 +454,9 @@ export default function Home() {
       if (data.length > 0) {
         const groupData = data.filter(
           (group) =>
-            ((group.announce || group.isCommunityAnnounce) && group.isAdmin) ||
-            (!group.announce && !group.isCommunityAnnounce && !group.isAdmin)
+            !group.isCommunity &&
+            (((group.announce || group.isCommunityAnnounce) && group.isAdmin) ||
+              (!group.announce && !group.isCommunityAnnounce))
         );
 
         setGroups(groupData);
@@ -872,7 +873,7 @@ export default function Home() {
                 defaultOptions={groupOptions}
                 placeholder="Pilih Grup Tujuan"
                 emptyIndicator={
-                  <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                  <p className="text-center text-gray-600 dark:text-gray-400">
                     Tidak Ada Grup Yang Bisa Dipilih
                   </p>
                 }
