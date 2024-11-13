@@ -336,6 +336,8 @@ export default function Home() {
     }
 
     if (anchorLoop.length <= 0) {
+      console.log(broadcastFormData);
+
       toast({
         title: "Error",
         description: "Data tujuan tidak valid",
@@ -903,7 +905,7 @@ export default function Home() {
                   onChange={(values: Option[]) => {
                     setBroadcastFormData((prevData) => ({
                       ...prevData,
-                      groupIds: values,
+                      groups: values,
                     }));
                   }}
                   defaultOptions={groupOptions}
