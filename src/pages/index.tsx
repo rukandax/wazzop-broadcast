@@ -199,6 +199,7 @@ export default function Home() {
   const [showConnectQRModal, setShowConnectQRModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [submitIndex, setSubmitIndex] = useState(0);
+  const [submitTotal, setSubmitTotal] = useState(0);
 
   const messageTemplateRef = useRef<HTMLTextAreaElement>(null);
   const destinationNumbersRef = useRef<HTMLTextAreaElement>(null);
@@ -242,7 +243,10 @@ export default function Home() {
   }, [showAddDeviceModal]);
 
   useEffect(() => {
-    if (broadcastFormData.destinationType === "group") {
+    if (
+      broadcastFormData.destinationType === "group" ||
+      broadcastFormData.destinationType === "group-member"
+    ) {
       getGroupsData();
     }
   }, [broadcastFormData.destinationType, broadcastFormData.deviceId]);
@@ -307,99 +311,92 @@ export default function Home() {
       return;
     }
 
-    if (
-      broadcastFormData.destinationType === "person" &&
-      !broadcastFormData.destinations?.length
-    ) {
-      toast({
-        title: "Error",
-        description: "Nomor tujuan tidak valid",
-        variant: "destructive",
-      });
-      return;
+    const phoneNumbers = broadcastFormData.destinations.trim().split("\n");
+    let sendDestinationItem: string[] = [];
+    let anchorLoop: string[] = [];
+
+    if (broadcastFormData.destinationType === "person") {
+      anchorLoop = phoneNumbers;
     }
 
-    if (
-      broadcastFormData.destinationType === "group" &&
-      !broadcastFormData.groupIds?.length
-    ) {
+    if (broadcastFormData.destinationType === "group") {
+      anchorLoop = broadcastFormData.groupIds.map((group) => group.value);
+    }
+
+    if (broadcastFormData.destinationType === "group-member") {
+      let groupMemberAnchorLoop: string[] = [];
+
+      for (let i = 0; i < anchorLoop.length; i++) {
+        const groupParticipants = await getGroupsParticipants(anchorLoop[i]);
+        groupMemberAnchorLoop = Object.keys(groupParticipants);
+      }
+
+      anchorLoop = groupMemberAnchorLoop;
+    }
+
+    if (anchorLoop.length <= 0) {
       toast({
         title: "Error",
-        description: "Group tujuan tidak valid",
+        description: "Data tujuan tidak valid",
         variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
+    setSubmitTotal(anchorLoop.length);
     setSubmitIndex(0);
     setShowSubmitProgressModal(true);
 
-    const phoneNumbers = broadcastFormData.destinations.trim().split("\n");
+    for (const destinationItem of anchorLoop) {
+      setSubmitIndex((prevData) => prevData + 1);
 
-    if (!!phoneNumbers?.length) {
-      let sendDestinationItem: string[] = [];
-
-      const anchorLoop =
-        broadcastFormData.destinationType === "person"
-          ? phoneNumbers
-          : broadcastFormData.groupIds.map((group) => group.value);
-
-      for (const destinationItem of anchorLoop) {
-        setSubmitIndex((prevData) => prevData + 1);
-
-        if (
-          sendDestinationItem.includes(formatPhoneNumber(destinationItem)) ||
-          !destinationItem
-        ) {
-          continue;
-        }
-
-        try {
-          await axiosInstance.post("/send", {
-            deviceId: broadcastFormData.deviceId,
-            destination:
-              broadcastFormData.destinationType === "person"
-                ? formatPhoneNumber(destinationItem)
-                : destinationItem,
-            type: broadcastFormData.destinationType,
-            text: `${broadcastFormData.messageTemplate}\n\n> Pesan ini dikirim melalui Wazzop Broadcast`,
-            media: !!broadcastFormData.mediaUrl
-              ? {
-                  url: broadcastFormData.mediaUrl,
-                  type: "image",
-                }
-              : undefined,
-          });
-
-          const randomDelay =
-            Math.floor(Math.random() * (4000 - 2000 + 1)) + 2000;
-          await delay(randomDelay);
-
-          sendDestinationItem.push(formatPhoneNumber(destinationItem));
-        } catch (error: any) {
-          toast({
-            title: "Error",
-            description:
-              error?.response?.data?.error?.message ||
-              "Terjadi kesalahan Saat Mengirim Pesan",
-            variant: "destructive",
-          });
-        }
+      if (
+        sendDestinationItem.includes(formatPhoneNumber(destinationItem)) ||
+        !destinationItem
+      ) {
+        continue;
       }
 
-      sendDestinationItem = [];
+      try {
+        await axiosInstance.post("/send", {
+          deviceId: broadcastFormData.deviceId,
+          destination:
+            broadcastFormData.destinationType === "person"
+              ? formatPhoneNumber(destinationItem)
+              : destinationItem,
+          type: broadcastFormData.destinationType,
+          text: `${broadcastFormData.messageTemplate}\n\n> Pesan ini dikirim melalui Wazzop Broadcast`,
+          media: !!broadcastFormData.mediaUrl
+            ? {
+                url: broadcastFormData.mediaUrl,
+                type: "image",
+              }
+            : undefined,
+        });
 
-      setIsLoading(false);
-      setShowSubmitProgressModal(false);
-      setSubmitIndex(0);
-    } else {
-      toast({
-        title: "Error",
-        description: "Nomor tujuan tidak valid",
-        variant: "destructive",
-      });
+        const randomDelay =
+          Math.floor(Math.random() * (4000 - 2000 + 1)) + 2000;
+        await delay(randomDelay);
+
+        sendDestinationItem.push(formatPhoneNumber(destinationItem));
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description:
+            error?.response?.data?.error?.message ||
+            "Terjadi kesalahan Saat Mengirim Pesan",
+          variant: "destructive",
+        });
+      }
     }
+
+    sendDestinationItem = [];
+
+    setIsLoading(false);
+    setShowSubmitProgressModal(false);
+    setSubmitTotal(0);
+    setSubmitIndex(0);
   };
 
   const getDevicesData = async (isIgnoreAuth: boolean = false) => {
@@ -445,11 +442,9 @@ export default function Home() {
     try {
       setIsLoading(true);
 
-      const { data } = await axiosInstance.get<Group[]>("/group", {
-        params: {
-          deviceId: broadcastFormData.deviceId,
-        },
-      });
+      const { data } = await axiosInstance.get<Group[]>(
+        `/group?deviceId=${broadcastFormData.deviceId}`
+      );
 
       if (data.length > 0) {
         const groupData = data.filter(
@@ -479,6 +474,40 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getGroupsParticipants = async (
+    groupId: string
+  ): Promise<Record<string, Record<string, string | number>>> => {
+    if (!isAuthenticated) {
+      return {};
+    }
+
+    try {
+      setIsLoading(true);
+
+      const { data } = await axiosInstance.get(
+        `/group/${groupId}/participants`,
+        {
+          params: {
+            deviceId: broadcastFormData.deviceId,
+          },
+        }
+      );
+
+      setIsLoading(false);
+      return data;
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error?.response?.data?.error?.message ||
+          "Terjadi kesalahan Saat Mengambil Data Grup",
+        variant: "destructive",
+      });
+    }
+
+    return {};
   };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -743,9 +772,10 @@ export default function Home() {
                 {devices.map((device) => (
                   <SelectItem key={device.id} value={device.id}>
                     {device.data.deviceName}{" "}
-                    {device.data.deviceStatus === "connected" ||
-                    device.data.deviceStatus === "syncing" ? (
+                    {device.data.deviceStatus === "connected" ? (
                       <>({device.data.phoneNumber}) - Connected</>
+                    ) : device.data.deviceStatus === "syncing" ? (
+                      <>({device.data.phoneNumber}) - Syncing</>
                     ) : (
                       <>- Disconnected</>
                     )}
@@ -835,6 +865,9 @@ export default function Home() {
               <SelectContent>
                 <SelectItem value="person">List Nomor WhatsApp</SelectItem>
                 <SelectItem value="group">List Grup WhatsApp</SelectItem>
+                <SelectItem value="group-member">
+                  Member Grup WhatsApp
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -859,27 +892,29 @@ export default function Home() {
             </div>
           )}
 
-          {!isLoading && broadcastFormData.destinationType === "group" && (
-            <div className="space-y-2">
-              <Label htmlFor="destinations">Grup Tujuan</Label>
-              <MultipleSelector
-                value={broadcastFormData.groupIds || []}
-                onChange={(values: Option[]) => {
-                  setBroadcastFormData((prevData) => ({
-                    ...prevData,
-                    groupIds: values,
-                  }));
-                }}
-                defaultOptions={groupOptions}
-                placeholder="Pilih Grup Tujuan"
-                emptyIndicator={
-                  <p className="text-center text-gray-600 dark:text-gray-400">
-                    Tidak Ada Grup Yang Bisa Dipilih
-                  </p>
-                }
-              />
-            </div>
-          )}
+          {!isLoading &&
+            (broadcastFormData.destinationType === "group" ||
+              broadcastFormData.destinationType === "group-member") && (
+              <div className="space-y-2">
+                <Label htmlFor="destinations">Grup Tujuan</Label>
+                <MultipleSelector
+                  value={broadcastFormData.groupIds || []}
+                  onChange={(values: Option[]) => {
+                    setBroadcastFormData((prevData) => ({
+                      ...prevData,
+                      groupIds: values,
+                    }));
+                  }}
+                  defaultOptions={groupOptions}
+                  placeholder="Pilih Grup Tujuan"
+                  emptyIndicator={
+                    <p className="text-center text-gray-600 dark:text-gray-400">
+                      Tidak Ada Grup Yang Bisa Dipilih
+                    </p>
+                  }
+                />
+              </div>
+            )}
 
           <Button
             type="submit"
@@ -988,9 +1023,10 @@ export default function Home() {
                     {devices.map((device) => (
                       <SelectItem key={device.id} value={device.id}>
                         {device.data.deviceName}{" "}
-                        {device.data.deviceStatus === "connected" ||
-                        device.data.deviceStatus === "syncing" ? (
+                        {device.data.deviceStatus === "connected" ? (
                           <>({device.data.phoneNumber}) - Connected</>
+                        ) : device.data.deviceStatus === "syncing" ? (
+                          <>({device.data.phoneNumber}) - Syncing</>
                         ) : (
                           <>- Disconnected</>
                         )}
@@ -1200,8 +1236,7 @@ export default function Home() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                Pengiriman Pesan Dalam Proses {submitIndex}/
-                {broadcastFormData.destinations.trim().split("\n").length}
+                Pengiriman Pesan Dalam Proses {submitIndex}/{submitTotal}
               </DialogTitle>
             </DialogHeader>
             <p>
