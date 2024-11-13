@@ -329,7 +329,9 @@ export default function Home() {
 
       for (let i = 0; i < groupIds.length; i++) {
         const groupParticipants = await getGroupsParticipants(groupIds[i]);
-        groupMemberAnchorLoop = Object.keys(groupParticipants);
+        groupMemberAnchorLoop = groupParticipants.map(
+          (participant) => participant.id
+        );
       }
 
       anchorLoop = groupMemberAnchorLoop;
@@ -484,7 +486,7 @@ export default function Home() {
 
   const getGroupsParticipants = async (groupId: string) => {
     if (!isAuthenticated) {
-      return {};
+      return [];
     }
 
     try {
@@ -510,7 +512,7 @@ export default function Home() {
       });
     }
 
-    return {};
+    return [];
   };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
