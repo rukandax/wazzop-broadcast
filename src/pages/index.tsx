@@ -39,6 +39,7 @@ import formatPhoneNumber from "@/lib/formatPhoneNumber";
 import MultipleSelector, {
   Option,
 } from "@/components/custom/multiple-selector";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 type Device = {
   id: string;
@@ -158,6 +159,7 @@ export default function Home() {
     destinationType: "person",
     destinations: "",
     groups: [],
+    destinationCategory: "all",
   });
   const [broadcastFormData, setBroadcastFormData] = useState<{
     deviceId: string;
@@ -166,6 +168,7 @@ export default function Home() {
     destinationType: string;
     destinations: string;
     groups: Option[];
+    destinationCategory: string;
   }>({
     ...DEFAULT_BROADCAST_FORM_DATA,
   });
@@ -328,7 +331,14 @@ export default function Home() {
       let groupMemberAnchorLoop: string[] = [];
 
       for (let i = 0; i < groupIds.length; i++) {
-        const groupParticipants = await getGroupsParticipants(groupIds[i]);
+        let groupParticipants = await getGroupsParticipants(groupIds[i]);
+
+        if (broadcastFormData.destinationCategory === "member") {
+          groupParticipants = groupParticipants.filter(
+            (participant) => !participant.isAdmin
+          );
+        }
+
         groupMemberAnchorLoop = groupParticipants.map(
           (participant) => participant.id
         );
@@ -338,8 +348,6 @@ export default function Home() {
     }
 
     if (anchorLoop.length <= 0) {
-      console.log(broadcastFormData);
-
       toast({
         title: "Error",
         description: "Data tujuan tidak valid",
@@ -758,7 +766,9 @@ export default function Home() {
 
         <form onSubmit={handleSubmitBroadcast} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="device">Pilih Device</Label>
+            <Label className="font-semibold" htmlFor="device">
+              Pilih Device
+            </Label>
             <Select
               value={broadcastFormData.deviceId || ""}
               onValueChange={(value: string) => {
@@ -816,7 +826,9 @@ export default function Home() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="messageTemplate">Teks Pesan</Label>
+            <Label className="font-semibold" htmlFor="messageTemplate">
+              Teks Pesan
+            </Label>
             <Textarea
               id="messageTemplate"
               name="messageTemplate"
@@ -834,7 +846,9 @@ export default function Home() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="mediaUrl">URL Gambar</Label>
+            <Label className="font-semibold" htmlFor="mediaUrl">
+              URL Gambar
+            </Label>
             <Input
               id="mediaUrl"
               name="mediaUrl"
@@ -852,7 +866,9 @@ export default function Home() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="destinations">Jenis Tujuan</Label>
+            <Label className="font-semibold" htmlFor="destinations">
+              Jenis Tujuan
+            </Label>
             <Select
               value={broadcastFormData.destinationType || ""}
               onValueChange={(value: string) => {
@@ -879,7 +895,9 @@ export default function Home() {
 
           {broadcastFormData.destinationType === "person" && (
             <div className="space-y-2">
-              <Label htmlFor="destinations">Nomor Tujuan</Label>
+              <Label className="font-semibold" htmlFor="destinations">
+                Nomor Tujuan
+              </Label>
               <Textarea
                 id="destinations"
                 name="destinations"
@@ -901,7 +919,9 @@ export default function Home() {
             (broadcastFormData.destinationType === "group" ||
               broadcastFormData.destinationType === "group-member") && (
               <div className="space-y-2">
-                <Label htmlFor="destinations">Grup Tujuan</Label>
+                <Label className="font-semibold" htmlFor="destinations">
+                  Grup Tujuan
+                </Label>
                 <MultipleSelector
                   value={broadcastFormData.groups || []}
                   onChange={(values: Option[]) => {
@@ -918,6 +938,36 @@ export default function Home() {
                     </p>
                   }
                 />
+              </div>
+            )}
+
+          {!isLoading &&
+            broadcastFormData.destinationType === "group-member" && (
+              <div className="space-y-2">
+                <Label className="font-semibold" htmlFor="destinations">
+                  Pengaturan Tambahan
+                </Label>
+                <RadioGroup
+                  defaultValue="all"
+                  value={broadcastFormData.destinationCategory}
+                  onValueChange={(value: string) => {
+                    setBroadcastFormData((prevData) => ({
+                      ...prevData,
+                      destinationCategory: value,
+                    }));
+                  }}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="all" id="all" />
+                    <Label htmlFor="all">Semua Member (Termasuk Admin)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="member" id="member" />
+                    <Label htmlFor="member">
+                      Hanya Anggota (Tidak Termasuk Admin)
+                    </Label>
+                  </div>
+                </RadioGroup>
               </div>
             )}
 
@@ -947,7 +997,9 @@ export default function Home() {
             </DialogHeader>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label className="font-semibold" htmlFor="username">
+                  Username
+                </Label>
                 <Input
                   id="username"
                   name="username"
@@ -964,7 +1016,9 @@ export default function Home() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label className="font-semibold" htmlFor="password">
+                  Password
+                </Label>
                 <Input
                   id="password"
                   name="password"
@@ -1007,7 +1061,9 @@ export default function Home() {
             </DialogHeader>
             <form onSubmit={handleAddDevice} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="device">Tambah atau Pilih Device</Label>
+                <Label className="font-semibold" htmlFor="device">
+                  Tambah atau Pilih Device
+                </Label>
                 <Select
                   onValueChange={(value: string) => {
                     setNewDeviceFormData((prevData) => ({
@@ -1042,7 +1098,9 @@ export default function Home() {
               </div>
               {newDeviceFormData.deviceId === "add-new-device" ? (
                 <div className="space-y-2">
-                  <Label htmlFor="deviceName">Nama Device</Label>
+                  <Label className="font-semibold" htmlFor="deviceName">
+                    Nama Device
+                  </Label>
                   <Input
                     id="deviceName"
                     value={newDeviceFormData.name}
@@ -1138,7 +1196,9 @@ export default function Home() {
             </DialogHeader>
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Nama Lengkap</Label>
+                <Label className="font-semibold" htmlFor="fullName">
+                  Nama Lengkap
+                </Label>
                 <Input
                   id="fullName"
                   name="fullName"
@@ -1155,7 +1215,9 @@ export default function Home() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label className="font-semibold" htmlFor="email">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -1173,7 +1235,9 @@ export default function Home() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="whatsappNumber">Nomor WhatsApp</Label>
+                <Label className="font-semibold" htmlFor="whatsappNumber">
+                  Nomor WhatsApp
+                </Label>
                 <Input
                   id="whatsappNumber"
                   name="whatsappNumber"
