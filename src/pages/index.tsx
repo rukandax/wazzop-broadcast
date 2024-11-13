@@ -368,7 +368,10 @@ export default function Home() {
             broadcastFormData.destinationType === "person"
               ? formatPhoneNumber(destinationItem)
               : destinationItem,
-          type: broadcastFormData.destinationType,
+          type:
+            broadcastFormData.destinationType === "group-member"
+              ? "person"
+              : broadcastFormData.destinationType,
           text: `${broadcastFormData.messageTemplate}\n\n> Pesan ini dikirim melalui Wazzop Broadcast`,
           media: !!broadcastFormData.mediaUrl
             ? {
@@ -479,9 +482,7 @@ export default function Home() {
     }
   };
 
-  const getGroupsParticipants = async (
-    groupId: string
-  ): Promise<Record<string, Record<string, string | number>>> => {
+  const getGroupsParticipants = async (groupId: string) => {
     if (!isAuthenticated) {
       return {};
     }
@@ -489,14 +490,13 @@ export default function Home() {
     try {
       setIsLoading(true);
 
-      const { data } = await axiosInstance.get(
-        `/group/${groupId}/participants`,
-        {
-          params: {
-            deviceId: broadcastFormData.deviceId,
-          },
-        }
-      );
+      const { data } = await axiosInstance.get<
+        { id: string; isAdmin: boolean }[]
+      >(`/group/${groupId}/participants`, {
+        params: {
+          deviceId: broadcastFormData.deviceId,
+        },
+      });
 
       setIsLoading(false);
       return data;
