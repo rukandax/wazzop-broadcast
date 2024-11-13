@@ -157,7 +157,7 @@ export default function Home() {
     mediaUrl: "",
     destinationType: "person",
     destinations: "",
-    groupIds: [],
+    groups: [],
   });
   const [broadcastFormData, setBroadcastFormData] = useState<{
     deviceId: string;
@@ -165,7 +165,7 @@ export default function Home() {
     mediaUrl: string;
     destinationType: string;
     destinations: string;
-    groupIds: Option[];
+    groups: Option[];
   }>({
     ...DEFAULT_BROADCAST_FORM_DATA,
   });
@@ -320,14 +320,15 @@ export default function Home() {
     }
 
     if (broadcastFormData.destinationType === "group") {
-      anchorLoop = broadcastFormData.groupIds.map((group) => group.value);
+      anchorLoop = broadcastFormData.groups.map((group) => group.value);
     }
 
     if (broadcastFormData.destinationType === "group-member") {
+      const groupIds = broadcastFormData.groups.map((group) => group.value);
       let groupMemberAnchorLoop: string[] = [];
 
-      for (let i = 0; i < anchorLoop.length; i++) {
-        const groupParticipants = await getGroupsParticipants(anchorLoop[i]);
+      for (let i = 0; i < groupIds.length; i++) {
+        const groupParticipants = await getGroupsParticipants(groupIds[i]);
         groupMemberAnchorLoop = Object.keys(groupParticipants);
       }
 
@@ -898,7 +899,7 @@ export default function Home() {
               <div className="space-y-2">
                 <Label htmlFor="destinations">Grup Tujuan</Label>
                 <MultipleSelector
-                  value={broadcastFormData.groupIds || []}
+                  value={broadcastFormData.groups || []}
                   onChange={(values: Option[]) => {
                     setBroadcastFormData((prevData) => ({
                       ...prevData,
