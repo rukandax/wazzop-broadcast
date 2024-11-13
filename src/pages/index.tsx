@@ -477,7 +477,7 @@ export default function Home() {
 
       setBroadcastFormData((prevData) => ({
         ...prevData,
-        groupId: "",
+        groups: [],
       }));
     } catch (error: any) {
       toast({
