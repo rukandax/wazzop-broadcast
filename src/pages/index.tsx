@@ -392,7 +392,7 @@ export default function Home() {
         });
 
         const randomDelay =
-          Math.floor(Math.random() * (4000 - 2000 + 1)) + 2000;
+          Math.floor(Math.random() * (6000 - 3000 + 1)) + 3000;
         await delay(randomDelay);
 
         sendDestinationItem.push(formatPhoneNumber(destinationItem));
