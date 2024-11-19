@@ -40,6 +40,7 @@ import MultipleSelector, {
   Option,
 } from "@/components/custom/multiple-selector";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { NumberedTextarea } from "@/components/custom/numbered-textarea";
 
 type Device = {
   id: string;
@@ -198,7 +199,6 @@ export default function Home() {
   });
 
   const [connectDeviceQR, setConnectDeviceQR] = useState("");
-
   const [showConnectQRModal, setShowConnectQRModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [submitIndex, setSubmitIndex] = useState(0);
@@ -345,6 +345,10 @@ export default function Home() {
       }
 
       anchorLoop = groupMemberAnchorLoop;
+      setBroadcastFormData((prevData) => ({
+        ...prevData,
+        destinations: anchorLoop.join("\n"),
+      }));
     }
 
     if (anchorLoop.length <= 0) {
@@ -898,7 +902,7 @@ export default function Home() {
               <Label className="font-semibold" htmlFor="destinations">
                 Nomor Tujuan
               </Label>
-              <Textarea
+              <NumberedTextarea
                 id="destinations"
                 name="destinations"
                 placeholder="Masukan nomor tujuan, satu nomor per baris"
@@ -943,32 +947,48 @@ export default function Home() {
 
           {!isLoading &&
             broadcastFormData.destinationType === "group-member" && (
-              <div className="space-y-2">
-                <Label className="font-semibold" htmlFor="destinations">
-                  Pengaturan Tambahan
-                </Label>
-                <RadioGroup
-                  defaultValue="all"
-                  value={broadcastFormData.destinationCategory}
-                  onValueChange={(value: string) => {
-                    setBroadcastFormData((prevData) => ({
-                      ...prevData,
-                      destinationCategory: value,
-                    }));
-                  }}
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="all" id="all" />
-                    <Label htmlFor="all">Semua Member (Termasuk Admin)</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="member" id="member" />
-                    <Label htmlFor="member">
-                      Hanya Anggota (Tidak Termasuk Admin)
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label className="font-semibold" htmlFor="destinations">
+                    List Penerima
+                  </Label>
+                  <NumberedTextarea
+                    id="destinations"
+                    name="destinations"
+                    disabled={true}
+                    readOnly={true}
+                    className="min-h-[100px] resize-none overflow-hidden"
+                    value={broadcastFormData.destinations}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-semibold" htmlFor="destinations">
+                    Pengaturan Tambahan
+                  </Label>
+                  <RadioGroup
+                    defaultValue="all"
+                    value={broadcastFormData.destinationCategory}
+                    onValueChange={(value: string) => {
+                      setBroadcastFormData((prevData) => ({
+                        ...prevData,
+                        destinationCategory: value,
+                      }));
+                    }}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="all" id="all" />
+                      <Label htmlFor="all">Semua Member (Termasuk Admin)</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="member" id="member" />
+                      <Label htmlFor="member">
+                        Hanya Anggota (Tidak Termasuk Admin)
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </>
             )}
 
           <Button
