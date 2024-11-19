@@ -258,6 +258,10 @@ export default function Home() {
     }
   }, [broadcastFormData.destinationType, broadcastFormData.deviceId]);
 
+  useEffect(() => {
+    setGroupParticipantText("");
+  }, [broadcastFormData.groups]);
+
   const handleBroadcastFormDataChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
