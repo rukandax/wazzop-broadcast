@@ -504,8 +504,6 @@ export default function Home() {
     }
 
     try {
-      setIsLoading(true);
-
       const { data } = await axiosInstance.get<
         { id: string; isAdmin: boolean }[]
       >(`/group/${groupId}/participants`, {
@@ -514,7 +512,6 @@ export default function Home() {
         },
       });
 
-      setIsLoading(false);
       return data;
     } catch (error: any) {
       toast({
