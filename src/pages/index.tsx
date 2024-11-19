@@ -354,7 +354,9 @@ export default function Home() {
       }
 
       anchorLoop = groupMemberAnchorLoop;
-      setGroupParticipantText(anchorLoop.join("\n"));
+      setGroupParticipantText(
+        anchorLoop.map((id) => id.replace("@s.whatsapp.net", "")).join("\n")
+      );
     }
 
     if (anchorLoop.length <= 0) {
