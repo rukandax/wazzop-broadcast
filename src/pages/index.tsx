@@ -202,6 +202,7 @@ export default function Home() {
   const [connectDeviceQR, setConnectDeviceQR] = useState("");
   const [showConnectQRModal, setShowConnectQRModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitIndex, setSubmitIndex] = useState(0);
   const [submitTotal, setSubmitTotal] = useState(0);
 
@@ -290,7 +291,7 @@ export default function Home() {
   const handleSubmitBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isLoading) {
+    if (isLoading || isSubmitting) {
       return;
     }
 
@@ -361,7 +362,7 @@ export default function Home() {
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
     setSubmitTotal(anchorLoop.length);
     setSubmitIndex(0);
     setShowSubmitProgressModal(true);
@@ -414,7 +415,7 @@ export default function Home() {
 
     sendDestinationItem = [];
 
-    setIsLoading(false);
+    setIsSubmitting(false);
     setShowSubmitProgressModal(false);
     setSubmitTotal(0);
     setSubmitIndex(0);
@@ -531,7 +532,7 @@ export default function Home() {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (isLoading) {
+    if (isLoading || isSubmitting) {
       return;
     }
 
@@ -558,7 +559,7 @@ export default function Home() {
   const handleDeleteDevice = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isLoading) {
+    if (isLoading || isSubmitting) {
       return;
     }
 
@@ -600,7 +601,7 @@ export default function Home() {
   const handleAddDevice = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isLoading) {
+    if (isLoading || isSubmitting) {
       return;
     }
 
@@ -665,7 +666,7 @@ export default function Home() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isLoading) {
+    if (isLoading || isSubmitting) {
       return;
     }
 
@@ -712,7 +713,7 @@ export default function Home() {
                   size="sm"
                   onClick={() => setShowAddDeviceModal(true)}
                   className="flex items-center space-x-2"
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                 >
                   <Smartphone className="h-4 w-4" />
                   <span>Connect Device</span>
@@ -722,7 +723,7 @@ export default function Home() {
                   size="sm"
                   onClick={handleLogout}
                   className="flex items-center space-x-2"
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                 >
                   <UserCircle className="h-4 w-4" />
                   <span>Keluar</span>
@@ -735,7 +736,7 @@ export default function Home() {
                   size="sm"
                   onClick={() => setShowLoginModal(true)}
                   className="flex items-center space-x-2"
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                 >
                   <LogIn className="h-4 w-4" />
                   <span>Masuk</span>
@@ -745,25 +746,11 @@ export default function Home() {
                   size="sm"
                   onClick={() => setShowRegisterModal(true)}
                   className="flex items-center space-x-2"
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                 >
                   <UserPlus className="h-4 w-4" />
                   <span>Daftar Gratis</span>
                 </Button>
-                {/* <Link
-                  href="https://forms.gle/3Dm9gbmf4u2JfqpHA"
-                  target="_blank"
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center space-x-2"
-                    disabled={isLoading}
-                  >
-                    <UserPlus className="h-4 w-4" />
-                    <span>Daftar Gratis</span>
-                  </Button>
-                </Link> */}
               </>
             )}
           </div>
@@ -782,7 +769,7 @@ export default function Home() {
                   deviceId: value,
                 }));
               }}
-              disabled={isLoading}
+              disabled={isLoading || isSubmitting}
               required
             >
               <SelectTrigger>
@@ -844,7 +831,9 @@ export default function Home() {
                 Cookies.set("message-template", e.target.value);
               }}
               required
-              disabled={isLoading || !broadcastFormData.deviceId}
+              disabled={
+                isLoading || isSubmitting || !broadcastFormData.deviceId
+              }
               className="min-h-[100px] resize-none overflow-hidden"
               ref={messageTemplateRef}
             />
@@ -857,7 +846,9 @@ export default function Home() {
             <Input
               id="mediaUrl"
               name="mediaUrl"
-              disabled={isLoading || !broadcastFormData.deviceId}
+              disabled={
+                isLoading || isSubmitting || !broadcastFormData.deviceId
+              }
               value={broadcastFormData.mediaUrl}
               placeholder="Masukan URL gambar (tidak bisa video atau audio)"
               onChange={(e) => {
@@ -882,7 +873,9 @@ export default function Home() {
                   destinationType: value,
                 }));
               }}
-              disabled={isLoading || !broadcastFormData.deviceId}
+              disabled={
+                isLoading || isSubmitting || !broadcastFormData.deviceId
+              }
               required
             >
               <SelectTrigger>
@@ -913,7 +906,9 @@ export default function Home() {
                   Cookies.set("destination-number", e.target.value);
                 }}
                 required
-                disabled={isLoading || !broadcastFormData.deviceId}
+                disabled={
+                  isLoading || isSubmitting || !broadcastFormData.deviceId
+                }
                 className="min-h-[100px] resize-none overflow-hidden"
                 ref={destinationNumbersRef}
               />
@@ -942,6 +937,7 @@ export default function Home() {
                       Tidak Ada Grup Yang Bisa Dipilih
                     </p>
                   }
+                  disabled={isLoading || isSubmitting}
                 />
               </div>
             )}
@@ -976,6 +972,7 @@ export default function Home() {
                         destinationCategory: value,
                       }));
                     }}
+                    disabled={isLoading || isSubmitting}
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="all" id="all" />
@@ -994,13 +991,18 @@ export default function Home() {
 
           <Button
             type="submit"
-            disabled={isLoading || devices.length === 0}
+            disabled={isLoading || isSubmitting || devices.length === 0}
             className="w-full sm:w-auto"
           >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Loading...
+              </>
+            ) : isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Mengirim...
               </>
             ) : (
               "Kirim Broadcast"
@@ -1026,7 +1028,7 @@ export default function Home() {
                   name="username"
                   placeholder="Masukan username"
                   required
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                   value={loginFormData.username}
                   onChange={(e) =>
                     setLoginFormData((prevData) => ({
@@ -1046,7 +1048,7 @@ export default function Home() {
                   type="password"
                   placeholder="Masukan password"
                   required
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                   value={loginFormData.password}
                   onChange={(e) =>
                     setLoginFormData((prevData) => ({
@@ -1057,8 +1059,8 @@ export default function Home() {
                 />
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
+                <Button type="submit" disabled={isLoading || isSubmitting}>
+                  {isLoading || isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Dalam Proses...
@@ -1093,7 +1095,7 @@ export default function Home() {
                     }));
                   }}
                   value={newDeviceFormData.deviceId}
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Tambah atau Pilih Device" />
@@ -1132,7 +1134,7 @@ export default function Home() {
                       }))
                     }
                     required={newDeviceFormData.deviceId === "add-new-device"}
-                    disabled={isLoading}
+                    disabled={isLoading || isSubmitting}
                     placeholder={
                       newDeviceFormData.deviceId === "add-new-device"
                         ? "Masukan nama device"
@@ -1154,11 +1156,11 @@ export default function Home() {
                 >
                   {newDeviceFormData.deviceId !== "add-new-device" ? (
                     <Button
-                      disabled={isLoading}
+                      disabled={isLoading || isSubmitting}
                       variant="destructive"
                       onClick={handleDeleteDevice}
                     >
-                      {isLoading ? (
+                      {isLoading || isSubmitting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Dalam Proses...
@@ -1169,8 +1171,8 @@ export default function Home() {
                     </Button>
                   ) : null}
 
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? (
+                  <Button type="submit" disabled={isLoading || isSubmitting}>
+                    {isLoading || isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Dalam Proses...
@@ -1199,7 +1201,7 @@ export default function Home() {
             <DialogFooter>
               <Button
                 onClick={() => setShowConnectQRModal(false)}
-                disabled={isLoading}
+                disabled={isLoading || isSubmitting}
               >
                 Close
               </Button>
@@ -1232,7 +1234,7 @@ export default function Home() {
                     }))
                   }
                   required
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                 />
               </div>
               <div className="space-y-2">
@@ -1252,7 +1254,7 @@ export default function Home() {
                     }))
                   }
                   required
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                 />
               </div>
               <div className="space-y-2">
@@ -1271,12 +1273,12 @@ export default function Home() {
                     }))
                   }
                   required
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                 />
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
+                <Button type="submit" disabled={isLoading || isSubmitting}>
+                  {isLoading || isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Dalam Proses...
@@ -1316,7 +1318,7 @@ export default function Home() {
         <Dialog
           open={showSubmitProgressModal}
           onOpenChange={(isOpen) => {
-            if (isLoading) {
+            if (isLoading || isSubmitting) {
               setShowSubmitProgressModal(true);
             } else {
               setShowSubmitProgressModal(isOpen);
