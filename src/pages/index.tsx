@@ -198,6 +198,7 @@ export default function Home() {
     ...DEFAULT_REGISTRATION_FORM_DATA,
   });
 
+  const [groupParticipantText, setGroupParticipantText] = useState("");
   const [connectDeviceQR, setConnectDeviceQR] = useState("");
   const [showConnectQRModal, setShowConnectQRModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -246,6 +247,8 @@ export default function Home() {
   }, [showAddDeviceModal]);
 
   useEffect(() => {
+    setGroupParticipantText("");
+
     if (
       broadcastFormData.destinationType === "group" ||
       broadcastFormData.destinationType === "group-member"
@@ -327,6 +330,7 @@ export default function Home() {
     }
 
     if (broadcastFormData.destinationType === "group-member") {
+      setGroupParticipantText("");
       const groupIds = broadcastFormData.groups.map((group) => group.value);
       let groupMemberAnchorLoop: string[] = [];
 
@@ -345,10 +349,7 @@ export default function Home() {
       }
 
       anchorLoop = groupMemberAnchorLoop;
-      setBroadcastFormData((prevData) => ({
-        ...prevData,
-        destinations: anchorLoop.join("\n"),
-      }));
+      setGroupParticipantText(anchorLoop.join("\n"));
     }
 
     if (anchorLoop.length <= 0) {
@@ -958,7 +959,7 @@ export default function Home() {
                     disabled={true}
                     readOnly={true}
                     className="min-h-[100px] resize-none overflow-hidden"
-                    value={broadcastFormData.destinations}
+                    value={groupParticipantText}
                   />
                 </div>
 
