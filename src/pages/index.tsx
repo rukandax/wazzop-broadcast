@@ -74,6 +74,7 @@ export default function Home() {
   const axiosInstance = axios.create({
     baseURL: "/api",
     timeout: 6000,
+    withCredentials: true,
   });
 
   axiosInstance.interceptors.request.use(
