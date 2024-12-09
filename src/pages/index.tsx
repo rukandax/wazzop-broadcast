@@ -995,7 +995,12 @@ export default function Home() {
 
           <Button
             type="submit"
-            disabled={isLoading || isSubmitting || devices.length === 0}
+            disabled={
+              isLoading ||
+              isSubmitting ||
+              devices.length === 0 ||
+              !broadcastFormData.deviceId
+            }
             className="w-full sm:w-auto"
           >
             {isLoading ? (
