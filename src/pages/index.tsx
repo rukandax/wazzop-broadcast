@@ -773,7 +773,7 @@ export default function Home() {
                   deviceId: value,
                 }));
               }}
-              disabled={isLoading || isSubmitting}
+              disabled={isLoading || isSubmitting || !isAuthenticated}
               required
             >
               <SelectTrigger>
