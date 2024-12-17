@@ -440,6 +440,10 @@ export default function Home() {
 
       if (data.length > 0) {
         setDevices(data);
+        setBroadcastFormData((prevData) => ({
+          ...prevData,
+          deviceId: data[0].id,
+        }));
       } else {
         setDevices([]);
       }
