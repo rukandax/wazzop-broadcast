@@ -448,11 +448,6 @@ export default function Home() {
         setDevices([]);
       }
 
-      setBroadcastFormData((prevData) => ({
-        ...prevData,
-        deviceId: "",
-      }));
-
       setIsAuthenticated(true);
     } catch (error: any) {
       toast({
