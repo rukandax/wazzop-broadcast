@@ -162,7 +162,7 @@ export default function Home() {
     destinations: "",
     groups: [],
     destinationCategory: "all",
-    mentionCategory: "none-mention",
+    mentionCategory: "none-tag",
   });
   const [broadcastFormData, setBroadcastFormData] = useState<{
     deviceId: string;
@@ -346,11 +346,11 @@ export default function Home() {
     if (broadcastFormData.destinationType === "group") {
       anchorLoop = broadcastFormData.groups.map((group) => group.value);
 
-      if (broadcastFormData.mentionCategory !== "none-mention") {
+      if (broadcastFormData.mentionCategory !== "none-tag") {
         for (let i = 0; i < anchorLoop.length; i++) {
           let groupParticipants = await getGroupsParticipants(anchorLoop[i]);
 
-          if (broadcastFormData.mentionCategory === "member-mention") {
+          if (broadcastFormData.mentionCategory === "member-tag") {
             groupParticipants = groupParticipants.filter(
               (participant) => !participant.isAdmin
             );
@@ -437,7 +437,7 @@ export default function Home() {
             : undefined,
           mentions:
             broadcastFormData.destinationType === "group" &&
-            broadcastFormData.mentionCategory !== "none-mention"
+            broadcastFormData.mentionCategory !== "none-tag"
               ? mentionParticipantIds
               : undefined,
         });
@@ -943,7 +943,7 @@ export default function Home() {
             (broadcastFormData.destinationType === "group" ||
               broadcastFormData.destinationType === "group-member") && (
               <div className="space-y-2">
-                <Label className="font-semibold" htmlFor="destinations">
+                <Label className="font-semibold">
                   Grup Tujuan
                 </Label>
                 <MultipleSelector
@@ -968,34 +968,34 @@ export default function Home() {
 
           {!isLoading && broadcastFormData.destinationType === "group" && (
             <div className="space-y-2">
-              <Label className="font-semibold" htmlFor="destinations">
+              <Label className="font-semibold">
                 Pengaturan Tambahan
               </Label>
               <RadioGroup
-                defaultValue="none-mention"
-                value={broadcastFormData.destinationCategory}
+                defaultValue="none-tag"
+                value={broadcastFormData.mentionCategory}
                 onValueChange={(value: string) => {
                   setBroadcastFormData((prevData) => ({
                     ...prevData,
-                    destinationCategory: value,
+                    mentionCategory: value,
                   }));
                 }}
                 disabled={isLoading || isSubmitting}
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="none-mention" id="none-mention" />
-                  <Label htmlFor="none-mention">Tidak Mention Member</Label>
+                  <RadioGroupItem value="none-tag" id="none-tag" />
+                  <Label htmlFor="none-tag">Tidak Tag Member</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="all-mention" id="all-mention" />
-                  <Label htmlFor="all-mention">
-                    Mention Semua Member (Termasuk Admin)
+                  <RadioGroupItem value="all-tag" id="all-tag" />
+                  <Label htmlFor="all-tag">
+                    Tag Semua Member (Termasuk Admin)
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="member-mention" id="member-mention" />
-                  <Label htmlFor="member-mention">
-                    Mention Hanya Anggota (Tidak Termasuk Admin)
+                  <RadioGroupItem value="member-tag" id="member-tag" />
+                  <Label htmlFor="member-tag">
+                    Tag Hanya Anggota (Tidak Termasuk Admin)
                   </Label>
                 </div>
               </RadioGroup>
