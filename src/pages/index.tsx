@@ -48,7 +48,7 @@ type Device = {
     createdAt: number;
     deviceId: string;
     deviceName: string;
-    deviceStatus: "connected" | "disconnected" | "syncing";
+    deviceStatus: "connected" | "disconnected";
     phoneNumber: "string";
     updatedAt: number;
     userId: string;
@@ -270,33 +270,22 @@ export default function Home() {
     const fetchInterval = async () => {
       const deviceStatus = await getDeviceStatus(selectedDeviceId);
 
-      if (deviceStatus === "syncing") {
-        setIsLoading(true);
-
+      if (deviceStatus === "connected") {
+        clearTimeout(fetchTimeout);
+        setShowConnectQRModal(false);
+      } else {
         fetchTimeout = setTimeout(async () => {
           await fetchInterval();
-        }, 1000);
-      } else {
-        setIsLoading(false);
-
-        if (deviceStatus === "connected") {
-          clearTimeout(fetchTimeout);
-          setShowConnectQRModal(false);
-        } else {
-          fetchTimeout = setTimeout(async () => {
-            await fetchInterval();
-          }, 1000);
-        }
+        }, 500);
       }
     };
 
     if (showConnectQRModal) {
       fetchTimeout = setTimeout(async () => {
         await fetchInterval();
-      }, 1000);
+      }, 500);
     } else {
       clearTimeout(fetchTimeout);
-      setIsLoading(false);
     }
   }, [showConnectQRModal, newDeviceFormData, newDeviceFormData.deviceId]);
 
@@ -825,8 +814,6 @@ export default function Home() {
                     {device.data.deviceName}{" "}
                     {device.data.deviceStatus === "connected" ? (
                       <>({device.data.phoneNumber}) - Connected</>
-                    ) : device.data.deviceStatus === "syncing" ? (
-                      <>({device.data.phoneNumber}) - Syncing</>
                     ) : (
                       <>- Disconnected</>
                     )}
@@ -1134,8 +1121,6 @@ export default function Home() {
                         {device.data.deviceName}{" "}
                         {device.data.deviceStatus === "connected" ? (
                           <>({device.data.phoneNumber}) - Connected</>
-                        ) : device.data.deviceStatus === "syncing" ? (
-                          <>({device.data.phoneNumber}) - Syncing</>
                         ) : (
                           <>- Disconnected</>
                         )}
