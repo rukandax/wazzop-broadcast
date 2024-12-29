@@ -918,7 +918,7 @@ export default function Home() {
                 >
                   List Grup WhatsApp{" "}
                   {broadcastFormData.deviceId === "random"
-                    ? " (Silahkan Pilih 1 Device Terlebih Dahulu)"
+                    ? " (Pilih 1 Device)"
                     : ""}
                 </SelectItem>
                 <SelectItem value="group-member">
