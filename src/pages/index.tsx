@@ -162,6 +162,7 @@ export default function Home() {
     destinations: "",
     groups: [],
     destinationCategory: "all",
+    mentionCategory: "none-mention",
   });
   const [broadcastFormData, setBroadcastFormData] = useState<{
     deviceId: string;
@@ -171,6 +172,7 @@ export default function Home() {
     destinations: string;
     groups: Option[];
     destinationCategory: string;
+    mentionCategory: string;
   }>({
     ...DEFAULT_BROADCAST_FORM_DATA,
   });
@@ -199,7 +201,6 @@ export default function Home() {
     ...DEFAULT_REGISTRATION_FORM_DATA,
   });
 
-  const [groupParticipantText, setGroupParticipantText] = useState("");
   const [connectDeviceQR, setConnectDeviceQR] = useState("");
   const [showConnectQRModal, setShowConnectQRModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -242,15 +243,9 @@ export default function Home() {
 
   useEffect(() => {
     getDevicesData();
-  }, [showConnectQRModal]);
-
-  useEffect(() => {
-    getDevicesData();
   }, [showAddDeviceModal]);
 
   useEffect(() => {
-    setGroupParticipantText("");
-
     if (
       broadcastFormData.destinationType === "group" ||
       broadcastFormData.destinationType === "group-member"
@@ -258,10 +253,6 @@ export default function Home() {
       getGroupsData();
     }
   }, [broadcastFormData.destinationType]);
-
-  useEffect(() => {
-    setGroupParticipantText("");
-  }, [broadcastFormData.groups]);
 
   useEffect(() => {
     let fetchTimeout: any;
@@ -274,20 +265,22 @@ export default function Home() {
         clearTimeout(fetchTimeout);
         setShowConnectQRModal(false);
       } else {
-        fetchTimeout = setTimeout(async () => {
-          await fetchInterval();
+        fetchTimeout = setTimeout(() => {
+          fetchInterval();
         }, 500);
       }
     };
 
     if (showConnectQRModal) {
-      fetchTimeout = setTimeout(async () => {
-        await fetchInterval();
+      fetchTimeout = setTimeout(() => {
+        fetchInterval();
       }, 500);
     } else {
       clearTimeout(fetchTimeout);
     }
-  }, [showConnectQRModal, newDeviceFormData, newDeviceFormData.deviceId]);
+
+    getDevicesData();
+  }, [showConnectQRModal, newDeviceFormData.deviceId]);
 
   const handleBroadcastFormDataChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>
@@ -348,12 +341,29 @@ export default function Home() {
       anchorLoop = phoneNumbers;
     }
 
+    const mentionParticipantIds: Record<string, string[]> = {};
+
     if (broadcastFormData.destinationType === "group") {
       anchorLoop = broadcastFormData.groups.map((group) => group.value);
+
+      if (broadcastFormData.mentionCategory !== "none-mention") {
+        for (let i = 0; i < anchorLoop.length; i++) {
+          let groupParticipants = await getGroupsParticipants(anchorLoop[i]);
+
+          if (broadcastFormData.mentionCategory === "member-mention") {
+            groupParticipants = groupParticipants.filter(
+              (participant) => !participant.isAdmin
+            );
+          }
+
+          mentionParticipantIds[anchorLoop[i]] = groupParticipants.map(
+            (participant) => participant.id
+          );
+        }
+      }
     }
 
     if (broadcastFormData.destinationType === "group-member") {
-      setGroupParticipantText("");
       const groupIds = broadcastFormData.groups.map((group) => group.value);
       let groupMemberAnchorLoop: string[] = [];
 
@@ -372,9 +382,6 @@ export default function Home() {
       }
 
       anchorLoop = groupMemberAnchorLoop;
-      setGroupParticipantText(
-        anchorLoop.map((id) => id.replace("@s.whatsapp.net", "")).join("\n")
-      );
     }
 
     if (anchorLoop.length <= 0) {
@@ -407,7 +414,7 @@ export default function Home() {
 
       const selectedDeviceId =
         broadcastFormData.deviceId === "random"
-          ? Math.floor(Math.random() * activeDevice.length)
+          ? activeDevice[Math.floor(Math.random() * activeDevice.length)].id
           : broadcastFormData.deviceId;
 
       try {
@@ -428,6 +435,11 @@ export default function Home() {
                 type: "image",
               }
             : undefined,
+          mentions:
+            broadcastFormData.destinationType === "group" &&
+            broadcastFormData.mentionCategory !== "none-mention"
+              ? mentionParticipantIds
+              : undefined,
         });
 
         const randomDelay =
@@ -508,7 +520,7 @@ export default function Home() {
 
       for (let i = 0; i < activeDevice.length; i++) {
         const { data } = await axiosInstance.get<Group[]>(
-          `/group?deviceId=${broadcastFormData.deviceId}`
+          `/group?deviceId=${activeDevice[i].id}`
         );
 
         if (data.length > 0) {
@@ -954,51 +966,71 @@ export default function Home() {
               </div>
             )}
 
+          {!isLoading && broadcastFormData.destinationType === "group" && (
+            <div className="space-y-2">
+              <Label className="font-semibold" htmlFor="destinations">
+                Pengaturan Tambahan
+              </Label>
+              <RadioGroup
+                defaultValue="none-mention"
+                value={broadcastFormData.destinationCategory}
+                onValueChange={(value: string) => {
+                  setBroadcastFormData((prevData) => ({
+                    ...prevData,
+                    destinationCategory: value,
+                  }));
+                }}
+                disabled={isLoading || isSubmitting}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="none-mention" id="none-mention" />
+                  <Label htmlFor="none-mention">Tidak Mention Member</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="all-mention" id="all-mention" />
+                  <Label htmlFor="all-mention">
+                    Mention Semua Member (Termasuk Admin)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="member-mention" id="member-mention" />
+                  <Label htmlFor="member-mention">
+                    Mention Hanya Anggota (Tidak Termasuk Admin)
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
+
           {!isLoading &&
             broadcastFormData.destinationType === "group-member" && (
-              <>
-                <div className="space-y-2">
-                  <Label className="font-semibold" htmlFor="destinations">
-                    List Penerima
-                  </Label>
-                  <NumberedTextarea
-                    id="destinations"
-                    name="destinations"
-                    disabled={true}
-                    readOnly={true}
-                    className="min-h-[100px] resize-none overflow-hidden"
-                    value={groupParticipantText}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="font-semibold" htmlFor="destinations">
-                    Pengaturan Tambahan
-                  </Label>
-                  <RadioGroup
-                    defaultValue="all"
-                    value={broadcastFormData.destinationCategory}
-                    onValueChange={(value: string) => {
-                      setBroadcastFormData((prevData) => ({
-                        ...prevData,
-                        destinationCategory: value,
-                      }));
-                    }}
-                    disabled={isLoading || isSubmitting}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="all" id="all" />
-                      <Label htmlFor="all">Semua Member (Termasuk Admin)</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="member" id="member" />
-                      <Label htmlFor="member">
-                        Hanya Anggota (Tidak Termasuk Admin)
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </>
+              <div className="space-y-2">
+                <Label className="font-semibold" htmlFor="destinations">
+                  Pengaturan Tambahan
+                </Label>
+                <RadioGroup
+                  defaultValue="all"
+                  value={broadcastFormData.mentionCategory}
+                  onValueChange={(value: string) => {
+                    setBroadcastFormData((prevData) => ({
+                      ...prevData,
+                      mentionCategory: value,
+                    }));
+                  }}
+                  disabled={isLoading || isSubmitting}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="all" id="all" />
+                    <Label htmlFor="all">Semua Member (Termasuk Admin)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="member" id="member" />
+                    <Label htmlFor="member">
+                      Hanya Anggota (Tidak Termasuk Admin)
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
             )}
 
           <Button
@@ -1348,7 +1380,7 @@ export default function Home() {
           </DialogContent>
         </Dialog>
 
-        <footer className="mt-12 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
+        <footer className="mt-12 pt-8 pb-32 border-t border-gray-200 text-center text-sm text-gray-500">
           <p>Dibuat Oleh Klaster Digital</p>
           <div className="mt-4 flex justify-center space-x-4">
             <a
