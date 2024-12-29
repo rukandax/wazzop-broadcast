@@ -252,7 +252,7 @@ export default function Home() {
     ) {
       getGroupsData();
     }
-  }, [broadcastFormData.destinationType]);
+  }, [broadcastFormData.destinationType, broadcastFormData.deviceId]);
 
   useEffect(() => {
     let fetchTimeout: any;
@@ -408,13 +408,13 @@ export default function Home() {
         continue;
       }
 
-      const activeDevice = devices.filter(
+      const activeDevices = devices.filter(
         (device) => device.data.deviceStatus === "connected"
       );
 
       const selectedDeviceId =
         broadcastFormData.deviceId === "random"
-          ? activeDevice[Math.floor(Math.random() * activeDevice.length)].id
+          ? activeDevices[Math.floor(Math.random() * activeDevices.length)].id
           : broadcastFormData.deviceId;
 
       try {
@@ -438,7 +438,7 @@ export default function Home() {
           mentions:
             broadcastFormData.destinationType === "group" &&
             broadcastFormData.mentionCategory !== "none-tag"
-              ? mentionParticipantIds
+              ? mentionParticipantIds[destinationItem]
               : undefined,
         });
 
@@ -514,13 +514,16 @@ export default function Home() {
       setIsLoading(true);
       setGroups([]);
 
-      const activeDevice = devices.filter(
-        (device) => device.data.deviceStatus === "connected"
-      );
+      const activeDeviceIds =
+        broadcastFormData.destinationType === "group-member"
+          ? devices
+              .filter((device) => device.data.deviceStatus === "connected")
+              .map((device) => device.id)
+          : [broadcastFormData.deviceId];
 
-      for (let i = 0; i < activeDevice.length; i++) {
+      for (let i = 0; i < activeDeviceIds.length; i++) {
         const { data } = await axiosInstance.get<Group[]>(
-          `/group?deviceId=${activeDevice[i].id}`
+          `/group?deviceId=${activeDeviceIds[i]}`
         );
 
         if (data.length > 0) {
@@ -819,7 +822,7 @@ export default function Home() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem key="random" value="random">
-                  Pilih Device Secara Acak
+                  -- Random Device Mode
                 </SelectItem>
                 {devices.map((device) => (
                   <SelectItem key={device.id} value={device.id}>
@@ -909,7 +912,15 @@ export default function Home() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="person">List Nomor WhatsApp</SelectItem>
-                <SelectItem value="group">List Grup WhatsApp</SelectItem>
+                <SelectItem
+                  value="group"
+                  disabled={broadcastFormData.deviceId === "random"}
+                >
+                  List Grup WhatsApp{" "}
+                  {broadcastFormData.deviceId === "random"
+                    ? " (Tidak Bisa Digunakan Dalam Random Device Mode)"
+                    : ""}
+                </SelectItem>
                 <SelectItem value="group-member">
                   Member Grup WhatsApp
                 </SelectItem>
@@ -943,9 +954,7 @@ export default function Home() {
             (broadcastFormData.destinationType === "group" ||
               broadcastFormData.destinationType === "group-member") && (
               <div className="space-y-2">
-                <Label className="font-semibold">
-                  Grup Tujuan
-                </Label>
+                <Label className="font-semibold">Grup Tujuan</Label>
                 <MultipleSelector
                   value={broadcastFormData.groups || []}
                   onChange={(values: Option[]) => {
@@ -968,9 +977,7 @@ export default function Home() {
 
           {!isLoading && broadcastFormData.destinationType === "group" && (
             <div className="space-y-2">
-              <Label className="font-semibold">
-                Pengaturan Tambahan
-              </Label>
+              <Label className="font-semibold">Pengaturan Tambahan</Label>
               <RadioGroup
                 defaultValue="none-tag"
                 value={broadcastFormData.mentionCategory}
