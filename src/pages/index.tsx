@@ -155,7 +155,7 @@ export default function Home() {
   });
 
   const DEFAULT_BROADCAST_FORM_DATA = Object.freeze({
-    deviceId: "",
+    deviceId: "random",
     messageTemplate: "",
     mediaUrl: "",
     destinationType: "person",
@@ -257,11 +257,48 @@ export default function Home() {
     ) {
       getGroupsData();
     }
-  }, [broadcastFormData.destinationType, broadcastFormData.deviceId]);
+  }, [broadcastFormData.destinationType]);
 
   useEffect(() => {
     setGroupParticipantText("");
   }, [broadcastFormData.groups]);
+
+  useEffect(() => {
+    let fetchTimeout: any;
+    const selectedDeviceId = newDeviceFormData.deviceId;
+
+    const fetchInterval = async () => {
+      const deviceStatus = await getDeviceStatus(selectedDeviceId);
+
+      if (deviceStatus === "syncing") {
+        setIsLoading(true);
+
+        fetchTimeout = setTimeout(async () => {
+          await fetchInterval();
+        }, 1000);
+      } else {
+        setIsLoading(false);
+
+        if (deviceStatus === "connected") {
+          clearTimeout(fetchTimeout);
+          setShowConnectQRModal(false);
+        } else {
+          fetchTimeout = setTimeout(async () => {
+            await fetchInterval();
+          }, 1000);
+        }
+      }
+    };
+
+    if (showConnectQRModal) {
+      fetchTimeout = setTimeout(async () => {
+        await fetchInterval();
+      }, 1000);
+    } else {
+      clearTimeout(fetchTimeout);
+      setIsLoading(false);
+    }
+  }, [showConnectQRModal, newDeviceFormData, newDeviceFormData.deviceId]);
 
   const handleBroadcastFormDataChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>
@@ -302,15 +339,6 @@ export default function Home() {
 
     if (!isAuthenticated) {
       setShowLoginModal(true);
-      return;
-    }
-
-    if (!broadcastFormData.deviceId) {
-      toast({
-        title: "Error",
-        description: "Harap pilih device terlebih dahulu",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -384,9 +412,18 @@ export default function Home() {
         continue;
       }
 
+      const activeDevice = devices.filter(
+        (device) => device.data.deviceStatus === "connected"
+      );
+
+      const selectedDeviceId =
+        broadcastFormData.deviceId === "random"
+          ? Math.floor(Math.random() * activeDevice.length)
+          : broadcastFormData.deviceId;
+
       try {
         await axiosInstance.post("/send", {
-          deviceId: broadcastFormData.deviceId,
+          deviceId: selectedDeviceId,
           destination:
             broadcastFormData.destinationType === "person"
               ? formatPhoneNumber(destinationItem)
@@ -440,10 +477,6 @@ export default function Home() {
 
       if (data.length > 0) {
         setDevices(data);
-        setBroadcastFormData((prevData) => ({
-          ...prevData,
-          deviceId: data[0].id,
-        }));
       } else {
         setDevices([]);
       }
@@ -462,6 +495,15 @@ export default function Home() {
     }
   };
 
+  const getDeviceStatus = async (deviceId: string) => {
+    try {
+      const { data } = await axiosInstance.get<Device>(`/device/${deviceId}`);
+      return data.data.deviceStatus;
+    } catch (error: any) {
+      // do nothing
+    }
+  };
+
   const getGroupsData = async () => {
     if (!isAuthenticated) {
       return;
@@ -469,22 +511,28 @@ export default function Home() {
 
     try {
       setIsLoading(true);
+      setGroups([]);
 
-      const { data } = await axiosInstance.get<Group[]>(
-        `/group?deviceId=${broadcastFormData.deviceId}`
+      const activeDevice = devices.filter(
+        (device) => device.data.deviceStatus === "connected"
       );
 
-      if (data.length > 0) {
-        const groupData = data.filter(
-          (group) =>
-            !group.isCommunity &&
-            (((group.announce || group.isCommunityAnnounce) && group.isAdmin) ||
-              (!group.announce && !group.isCommunityAnnounce))
+      for (let i = 0; i < activeDevice.length; i++) {
+        const { data } = await axiosInstance.get<Group[]>(
+          `/group?deviceId=${broadcastFormData.deviceId}`
         );
 
-        setGroups(groupData);
-      } else {
-        setGroups([]);
+        if (data.length > 0) {
+          const groupData = data.filter(
+            (group) =>
+              !group.isCommunity &&
+              (((group.announce || group.isCommunityAnnounce) &&
+                group.isAdmin) ||
+                (!group.announce && !group.isCommunityAnnounce))
+          );
+
+          setGroups((prevGroups) => [...prevGroups, ...groupData]);
+        }
       }
 
       setBroadcastFormData((prevData) => ({
@@ -554,7 +602,7 @@ export default function Home() {
 
     setLoginFormData({ ...DEFAULT_LOGIN_FORM_DATA });
     setDevices([]);
-    setBroadcastFormData((prevData) => ({ ...prevData, deviceId: "" }));
+    setBroadcastFormData((prevData) => ({ ...prevData, deviceId: "random" }));
 
     setIsAuthenticated(false);
   };
@@ -610,46 +658,36 @@ export default function Home() {
 
     try {
       setIsLoading(true);
-      let addDeviceData: any;
+      let addedDeviceId = newDeviceFormData.deviceId;
 
       if (newDeviceFormData.deviceId === "add-new-device") {
-        const { data } = await axiosInstance.post("/device", {
+        const { data } = await axiosInstance.post<Device>("/device", {
           deviceName: newDeviceFormData.name,
         });
 
-        addDeviceData = data;
+        addedDeviceId = data.id;
+        setNewDeviceFormData((prevNewDevice) => ({
+          ...prevNewDevice,
+          deviceId: data.id,
+        }));
       }
 
-      if (
-        !!addDeviceData?.id ||
-        newDeviceFormData.deviceId !== "add-new-device"
-      ) {
-        const { data: connectDeviceData } = await axiosInstance.post(
-          "/device/connect",
-          {
-            deviceId:
-              newDeviceFormData.deviceId === "add-new-device"
-                ? addDeviceData.id
-                : newDeviceFormData.deviceId,
-          }
-        );
-
-        if (!connectDeviceData?.isConnected) {
-          setConnectDeviceQR(connectDeviceData.qrString);
-          setShowConnectQRModal(true);
-        } else {
-          setShowAddDeviceModal(false);
-
-          toast({
-            title: "Success",
-            description: "Device telah berhasil terkoneksi",
-          });
+      const { data: connectDeviceData } = await axiosInstance.post(
+        "/device/connect",
+        {
+          deviceId: addedDeviceId,
         }
+      );
+
+      if (!connectDeviceData?.isConnected) {
+        setConnectDeviceQR(connectDeviceData.qrString);
+        setShowConnectQRModal(true);
       } else {
+        setShowAddDeviceModal(false);
+
         toast({
-          title: "Error",
-          description: "Error saat menambahkan device baru",
-          variant: "destructive",
+          title: "Success",
+          description: "Device telah berhasil terkoneksi",
         });
       }
     } catch (error: any) {
@@ -765,7 +803,7 @@ export default function Home() {
               Pilih Device
             </Label>
             <Select
-              value={broadcastFormData.deviceId || ""}
+              value={broadcastFormData.deviceId || "random"}
               onValueChange={(value: string) => {
                 setBroadcastFormData((prevData) => ({
                   ...prevData,
@@ -779,6 +817,9 @@ export default function Home() {
                 <SelectValue placeholder="Pilih Device" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem key="random" value="random">
+                  Pilih Device Secara Acak
+                </SelectItem>
                 {devices.map((device) => (
                   <SelectItem key={device.id} value={device.id}>
                     {device.data.deviceName}{" "}
@@ -793,7 +834,7 @@ export default function Home() {
                 ))}
               </SelectContent>
             </Select>
-            {devices.length === 0 ? (
+            {devices.length === 0 && (
               <Alert className="mt-2">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Tidak Ada Device Terdaftar</AlertTitle>
@@ -806,17 +847,6 @@ export default function Home() {
                   klik &apos;Connect Device&apos; untuk menambahkan device baru.
                 </AlertDescription>
               </Alert>
-            ) : (
-              !broadcastFormData.deviceId && (
-                <Alert className="mt-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Silahkan Pilih Device</AlertTitle>
-                  <AlertDescription>
-                    Anda perlu memilih setidaknya 1 device untuk bisa mengirim
-                    pesan.
-                  </AlertDescription>
-                </Alert>
-              )
             )}
           </div>
 
@@ -827,16 +857,14 @@ export default function Home() {
             <Textarea
               id="messageTemplate"
               name="messageTemplate"
-              placeholder="Masukan teks pesan, mendukung formatting WhatsApp"
+              placeholder="Masukan teks pesan, mendukung formatting WhatsApp dan Conditional Statement dengan contoh {Option 1|Option 2|Option 3}"
               value={broadcastFormData.messageTemplate}
               onChange={(e) => {
                 handleBroadcastFormDataChange(e);
                 Cookies.set("message-template", e.target.value);
               }}
               required
-              disabled={
-                isLoading || isSubmitting || !broadcastFormData.deviceId
-              }
+              disabled={isLoading || isSubmitting || !devices.length}
               className="min-h-[100px] resize-none overflow-hidden"
               ref={messageTemplateRef}
             />
@@ -849,9 +877,7 @@ export default function Home() {
             <Input
               id="mediaUrl"
               name="mediaUrl"
-              disabled={
-                isLoading || isSubmitting || !broadcastFormData.deviceId
-              }
+              disabled={isLoading || isSubmitting || !devices.length}
               value={broadcastFormData.mediaUrl}
               placeholder="Masukan URL gambar (tidak bisa video atau audio)"
               onChange={(e) => {
@@ -876,9 +902,7 @@ export default function Home() {
                   destinationType: value,
                 }));
               }}
-              disabled={
-                isLoading || isSubmitting || !broadcastFormData.deviceId
-              }
+              disabled={isLoading || isSubmitting || !devices.length}
               required
             >
               <SelectTrigger>
@@ -909,9 +933,7 @@ export default function Home() {
                   Cookies.set("destination-number", e.target.value);
                 }}
                 required
-                disabled={
-                  isLoading || isSubmitting || !broadcastFormData.deviceId
-                }
+                disabled={isLoading || isSubmitting || !devices.length}
                 className="min-h-[100px] resize-none overflow-hidden"
                 ref={destinationNumbersRef}
               />
@@ -994,12 +1016,7 @@ export default function Home() {
 
           <Button
             type="submit"
-            disabled={
-              isLoading ||
-              isSubmitting ||
-              devices.length === 0 ||
-              !broadcastFormData.deviceId
-            }
+            disabled={isLoading || isSubmitting || !devices.length}
             className="w-full sm:w-auto"
           >
             {isLoading ? (
