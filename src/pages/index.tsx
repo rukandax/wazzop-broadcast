@@ -1017,11 +1017,11 @@ export default function Home() {
                 </Label>
                 <RadioGroup
                   defaultValue="all"
-                  value={broadcastFormData.mentionCategory}
+                  value={broadcastFormData.destinationCategory}
                   onValueChange={(value: string) => {
                     setBroadcastFormData((prevData) => ({
                       ...prevData,
-                      mentionCategory: value,
+                      destinationCategory: value,
                     }));
                   }}
                   disabled={isLoading || isSubmitting}
