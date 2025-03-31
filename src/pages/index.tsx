@@ -267,14 +267,14 @@ export default function Home() {
       } else {
         fetchTimeout = setTimeout(() => {
           fetchInterval();
-        }, 500);
+        }, 2000);
       }
     };
 
     if (showConnectQRModal) {
       fetchTimeout = setTimeout(() => {
         fetchInterval();
-      }, 500);
+      }, 2000);
     } else {
       clearTimeout(fetchTimeout);
     }
